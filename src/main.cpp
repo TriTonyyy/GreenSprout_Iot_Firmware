@@ -6,21 +6,19 @@
 #include <PubSubClient.h>
 #include <HTTPClient.h>
 // WiFi credentials
-const char* ssid = "HEN COFFEE";
-const char* password = "18032024";
+const char* ssid = "iPhone";
+const char* password = "ngocquyn1711";
 const char* serverName = "https://capstone-project-iot-1.onrender.com/api/sensor/data"; 
-// MQTT broker details
-// const char* mqttServer = "test.mosquitto.org";
-// const int mqttPort = 1883;
- const float delayTime = 10000;
+
+ const float delayTime = 1000;
 // DHT sensor configuration
 #define DHTTYPE DHT11
 #define DHTPIN 4
-
 // Sensor pins
 int moisturePin = 36; // Soil moisture sensor
 int rainPin = 39;     // Rain sensor
 int lightPin = 34;    // Light sensor
+int waterFlowPin = 35;    // Light sensor
 
 // Relay pins
 int pumpPin = 16;     // Pump relay
@@ -33,8 +31,23 @@ float moistureThreshold = 40.0;    // Moisture threshold in %
 
 DHT dht(DHTPIN, DHTTYPE); // Initialize DHT sensor
 WiFiClient espClient;     // WiFi client
-// PubSubClient client(espClient); // MQTT client
 
+volatile int pulseCount = 0; // Count pulses from water flow sensor
+float flowRate = 0.0;        // Flow rate in L/min
+float totalWaterUsed = 0.0;  // Total water used in liters
+
+// Calibration factor (adjust based on your sensor's datasheet)
+const float calibrationFactor = 7.5; 
+unsigned long lastPulseTime = 0;
+const int debounceDelay = 20; 
+// Interrupt function to count pulses
+void IRAM_ATTR pulseCounter() {
+  unsigned long currentTime = millis();
+  if (currentTime - lastPulseTime > debounceDelay) {
+    pulseCount++;
+    lastPulseTime = currentTime;
+  }
+}
 void connectWiFi() {
   Serial.print("Connecting to WiFi");
   WiFi.begin(ssid, password);
@@ -75,20 +88,7 @@ void sendDataToServer(float soilMoisture, float rainCover, float lightIntensity,
   // End HTTP connection
   http.end();
 }
-// void connectMQTT() {
-//   client.setServer(mqttServer, mqttPort);
-//   while (!client.connected()) {
-//     Serial.println("Connecting to MQTT...");
-//     if (client.connect("ESP32Client")) { // Change client ID as needed
-//     client.subscribe("TanSensor/dataTri");
-//       Serial.println("Connected to MQTT broker!");
-//     } else {
-//       Serial.print("Failed with state ");
-//       Serial.println(client.state());
-//       delay(2000);
-//     }
-//   }
-// }
+
 void getChipID(){
   // Lấy địa chỉ MAC
   uint64_t chipId = ESP.getEfuseMac();
@@ -105,7 +105,9 @@ void getChipID(){
 float readSoilMoisture() {
   return map(analogRead(moisturePin), 4095, 0, 0, 100); // Convert to percentage
 }
-
+float readWaterFlowSensor() {
+  return map(analogRead(waterFlowPin), 4095, 0, 0, 100); // Convert to percentage
+}
 float readRainSensor() {
   return map(analogRead(rainPin), 4095, 0, 0, 100); // Convert to percentage
 }
@@ -135,15 +137,19 @@ void controlPump(float soilMoisture) {
 void setup() {
   Serial.begin(9600);
   dht.begin();
-getChipID();
+  getChipID();
   // Set pin modes
   pinMode(moisturePin, INPUT);
   pinMode(rainPin, INPUT);
   pinMode(lightPin, INPUT);
+  pinMode(waterFlowPin, INPUT_PULLUP);
   pinMode(fanPin, OUTPUT);
   pinMode(pumpPin, OUTPUT);
   pinMode(motorPin, OUTPUT);
 
+
+
+  attachInterrupt(digitalPinToInterrupt(waterFlowPin), pulseCounter, FALLING);
   // Initialize relays to off
   digitalWrite(fanPin, HIGH);
   digitalWrite(pumpPin, HIGH);
@@ -151,15 +157,17 @@ getChipID();
 
   // Connect to WiFi and MQTT
   connectWiFi();
-  // connectMQTT();
 }
 
 void loop() {
-  // if (!client.connected()) {
-  //   connectWiFi();
-  // }
-  // client.loop();
-  Serial.println(WiFi.status());
+  pulseCount = 0; // Reset pulse count
+  delay(1000);    // Measure pulses for 1 second
+  Serial.printf("Raw Pulse Count: %d\n", pulseCount);
+  flowRate = pulseCount / calibrationFactor;  // Convert to L/min
+  totalWaterUsed += flowRate / 60;    // Accumulate total water usage
+
+  Serial.printf("Water Flow Rate: %.2f L/min\n", flowRate);
+  Serial.printf("Total Water Used: %.2f L\n", totalWaterUsed);
   float soilMoisture = readSoilMoisture();
   float rainCover = readRainSensor();
   float lightIntensity = readLightSensor();
@@ -180,17 +188,6 @@ void loop() {
   Serial.printf("Light Intensity: %.2f %%\n", lightIntensity);
   Serial.printf("Humidity: %.2f %%\n", humidity);
   Serial.printf("Temperature: %.2f *C\n", temperature);
-
-  // Publish data to MQTT
-  // String& payload = String("{") +
-  //                  "\"soilMoisture\":" + soilMoisture + "," +
-  //                  "\"rainCover\":" + rainCover + "," +
-  //                  "\"lightIntensity\":" + lightIntensity + "," +
-  //                  "\"humidity\":" + humidity + "," +
-  //                  "\"temperature\":" + temperature + 
-  //                  "}";
-  // client.publish("TanSensor/dataTri", payload.c_str());
-  // Serial.println("Data published to MQTT broker!");
 
   // Control relays
   controlFan(temperature);
