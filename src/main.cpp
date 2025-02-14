@@ -25,6 +25,10 @@ int pumpPin = 16;     // Pump relay
 int motorPin = 19;    // Motor relay
 int fanPin = 21;      // Fan relay
 
+bool isStart = false;
+
+
+
 // Threshold values
 float tempThreshold = 30.0;        // Temperature threshold in °C
 float moistureThreshold = 40.0;    // Moisture threshold in %
@@ -160,14 +164,17 @@ void setup() {
 }
 
 void loop() {
+  if (Serial.available()) {  // Check if data is available
+    char inputChar = Serial.read();  // Read the character
+    if(inputChar)
+      isStart = !isStart;
+  }
+  if(!isStart)
+    return;
   pulseCount = 0; // Reset pulse count
   delay(1000);    // Measure pulses for 1 second
-  Serial.printf("Raw Pulse Count: %d\n", pulseCount);
   flowRate = pulseCount / calibrationFactor;  // Convert to L/min
   totalWaterUsed += flowRate / 60;    // Accumulate total water usage
-
-  Serial.printf("Water Flow Rate: %.2f L/min\n", flowRate);
-  Serial.printf("Total Water Used: %.2f L\n", totalWaterUsed);
   float soilMoisture = readSoilMoisture();
   float rainCover = readRainSensor();
   float lightIntensity = readLightSensor();
@@ -183,6 +190,8 @@ void loop() {
 
   // Print sensor data
   Serial.println("Sensor Data:");
+  Serial.printf("Water Flow Rate: %.2f L/min\n", flowRate);
+  Serial.printf("Total Water Used: %.2f L\n", totalWaterUsed);
   Serial.printf("Soil Moisture: %.2f %%\n", soilMoisture);
   Serial.printf("Rain Cover: %.2f %%\n", rainCover);
   Serial.printf("Light Intensity: %.2f %%\n", lightIntensity);
@@ -190,9 +199,10 @@ void loop() {
   Serial.printf("Temperature: %.2f *C\n", temperature);
 
   // Control relays
+
   controlFan(temperature);
   controlPump(soilMoisture);
   // sendDataToServer(soilMoisture,rainCover,lightIntensity,humidity,temperature);
   Serial.println("------------------------------------------------------------------");
-  delay(delayTime); // Adjust delay as needed
+  // delay(delayTime); // Adjust delay as needed
 }
