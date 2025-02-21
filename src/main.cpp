@@ -5,15 +5,18 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <HTTPClient.h>
+#define WM_NO_WEB_SERVER
+#include <WiFiManager.h>
+#include <AsyncTCP.h>
+#define WEBSERVER_H
 #include <ESPAsyncWebServer.h>
 // WiFi credentials
-const char* ssid = "[NTH]";
-const char* password = "29042004";
 String serverAddress = "https://capstone-project-iot-1.onrender.com/api/sensor/"; 
 String sendDataPath = "data"; 
-
+String getDataPath = "getData"; 
+WiFiManager wifiManager;
 AsyncWebServer server(80);
-
+String deviceID = "";
  const float delayTime = 1000;
 // DHT sensor configuration
 #define DHTTYPE DHT11
@@ -26,8 +29,13 @@ int waterFlowPin = 35;    // Light sensor
 
 // Relay pins
 int pumpPin = 16;     // Pump relay
-int motorPin = 19;    // Motor relay
+int bulbPin = 19;    // Light relay
 int fanPin = 21;      // Fan relay
+
+
+bool pumpState = false;
+bool lightState = false;
+bool fanState = false;
 
 bool isStart = false;
 
@@ -54,15 +62,71 @@ void IRAM_ATTR pulseCounter() {
     lastPulseTime = currentTime;
   }
 }
-void connectWiFi() {
-  Serial.print("Connecting to WiFi");
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(WiFi.status());
-    delay(1000);
-    Serial.print(".");
+void handleControlAllRequest(AsyncWebServerRequest *request) {
+  if (request->hasParam("status")) {
+    String status = request->getParam("status")->value();
+
+    pumpState = status;
+    lightState = status;
+    fanState = status;
+    if(status){
+      digitalWrite(pumpPin, LOW);
+      digitalWrite(bulbPin, LOW);
+      digitalWrite(fanPin, LOW);
+    }else{
+      digitalWrite(pumpPin, HIGH);
+      digitalWrite(bulbPin, HIGH);
+      digitalWrite(fanPin, HIGH);
+    }
+    
+    
+    request->send(200, "application/json", "Hehe");
+  } else {
+    request->send(400, "application/json", "{\"message\":\"Missing parameters\"}");
   }
-  Serial.println("\nConnected to WiFi!");
+}
+void connectWiFi() {
+  WiFi.mode(WIFI_STA);  // Set ESP32 to Station mode
+  if (!wifiManager.autoConnect("ESP32_Setup")) {
+    Serial.println("Failed to connect. Restarting...");
+    delay(1000);
+    ESP.restart();
+  }
+  Serial.println("Connected to WiFi!");
+  Serial.print("ESP32 IP Address: ");
+  Serial.println(WiFi.localIP());
+
+  // Ensure automatic reconnection
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
+  server.on("/controlAll", HTTP_POST, handleControlAllRequest);
+
+  server.begin(); 
+}
+void getDataFromServer() {
+  HTTPClient http;
+  
+  String url = serverAddress + getDataPath; // Construct the full URL
+  Serial.println("Requesting data from: " + url);
+
+  http.begin(url); // Initialize HTTP request
+  int httpResponseCode = http.GET(); // Send GET request
+
+  if (httpResponseCode > 0) { // Check for a valid response
+    Serial.printf("HTTP Response Code: %d\n", httpResponseCode);
+    
+    String response = http.getString(); // Read the server response
+    Serial.println("Server Response:");
+    Serial.println(response);
+    
+    // **Optional: Parse JSON response**
+    // parseJSON(response);
+    
+  } else {
+    Serial.printf("Error in GET request: %s\n", http.errorToString(httpResponseCode).c_str());
+  }
+
+  http.end(); // Close the connection
 }
 void sendDataToServer(float soilMoisture, float rainCover, float lightIntensity, float humidity, float temperature) {
   HTTPClient http;
@@ -105,8 +169,8 @@ void getChipID(){
   Serial.println((uint32_t)chipId, HEX);        // Phần dưới của chipId
 
   // Tạo ID thiết bị (chỉ lấy phần dưới của chipId)
-  String deviceId = String((uint32_t)chipId, HEX);
-  Serial.println("Device ID: " + deviceId);
+  deviceID = String((uint32_t)chipId, HEX);
+  Serial.println("Device ID: " + deviceID);
 }
 float readSoilMoisture() {
   return map(analogRead(moisturePin), 4095, 0, 0, 100); // Convert to percentage
@@ -123,6 +187,9 @@ float readLightSensor() {
 }
 
 void controlFan(float temperature) {
+  if(!fanState){
+    return;
+  }
   if (temperature > tempThreshold) {
     Serial.println("Temperature too high! Turning on fan...");
     digitalWrite(fanPin, LOW); // Activate fan
@@ -132,6 +199,9 @@ void controlFan(float temperature) {
 }
 
 void controlPump(float soilMoisture) {
+  if(!pumpState){
+    return;
+  }
   if (soilMoisture < moistureThreshold) {
     Serial.println("Soil moisture too low! Turning on pump...");
     digitalWrite(pumpPin, LOW); // Activate pump
@@ -142,6 +212,8 @@ void controlPump(float soilMoisture) {
 
 void setup() {
   Serial.begin(9600);
+  WiFi.mode(WIFI_STA);
+
   dht.begin();
   getChipID();
   // Set pin modes
@@ -151,7 +223,7 @@ void setup() {
   pinMode(waterFlowPin, INPUT_PULLUP);
   pinMode(fanPin, OUTPUT);
   pinMode(pumpPin, OUTPUT);
-  pinMode(motorPin, OUTPUT);
+  pinMode(bulbPin, OUTPUT);
 
 
 
@@ -159,15 +231,11 @@ void setup() {
   // Initialize relays to off
   digitalWrite(fanPin, HIGH);
   digitalWrite(pumpPin, HIGH);
-  digitalWrite(motorPin, HIGH);
+  digitalWrite(bulbPin, HIGH);
 
   // Connect to WiFi and MQTT
   connectWiFi();
   Serial.println("ESP32 iP: "+WiFi.localIP().toString());
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Hello, world");
-  });
-
 }
 
 void loop() {
@@ -209,7 +277,8 @@ void loop() {
 
   controlFan(temperature);
   controlPump(soilMoisture);
-  sendDataToServer(soilMoisture,rainCover,lightIntensity,humidity,temperature);
+  // sendDataToServer(soilMoisture,rainCover,lightIntensity,humidity,temperature);
+  getDataFromServer();
   Serial.println("------------------------------------------------------------------");
   // delay(delayTime); // Adjust delay as needed
 }
