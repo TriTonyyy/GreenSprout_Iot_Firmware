@@ -5,12 +5,14 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <HTTPClient.h>
+#include <ESPAsyncWebServer.h>
 // WiFi credentials
 const char* ssid = "[NTH]";
 const char* password = "29042004";
 String serverAddress = "https://capstone-project-iot-1.onrender.com/api/sensor/"; 
 String sendDataPath = "data"; 
 
+AsyncWebServer server(80);
 
  const float delayTime = 1000;
 // DHT sensor configuration
@@ -28,8 +30,6 @@ int motorPin = 19;    // Motor relay
 int fanPin = 21;      // Fan relay
 
 bool isStart = false;
-
-
 
 // Threshold values
 float tempThreshold = 30.0;        // Temperature threshold in °C
@@ -163,6 +163,11 @@ void setup() {
 
   // Connect to WiFi and MQTT
   connectWiFi();
+  Serial.println("ESP32 iP: "+WiFi.localIP().toString());
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", "Hello, world");
+  });
+
 }
 
 void loop() {
@@ -204,7 +209,7 @@ void loop() {
 
   controlFan(temperature);
   controlPump(soilMoisture);
-  // sendDataToServer(soilMoisture,rainCover,lightIntensity,humidity,temperature);
+  sendDataToServer(soilMoisture,rainCover,lightIntensity,humidity,temperature);
   Serial.println("------------------------------------------------------------------");
   // delay(delayTime); // Adjust delay as needed
 }
