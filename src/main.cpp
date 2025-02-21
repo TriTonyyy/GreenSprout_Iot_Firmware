@@ -6,9 +6,11 @@
 #include <PubSubClient.h>
 #include <HTTPClient.h>
 // WiFi credentials
-const char* ssid = "iPhone";
-const char* password = "ngocquyn1711";
-const char* serverName = "https://capstone-project-iot-1.onrender.com/api/sensor/data"; 
+const char* ssid = "[NTH]";
+const char* password = "29042004";
+String serverAddress = "https://capstone-project-iot-1.onrender.com/api/sensor/"; 
+String sendDataPath = "data"; 
+
 
  const float delayTime = 1000;
 // DHT sensor configuration
@@ -75,7 +77,7 @@ void sendDataToServer(float soilMoisture, float rainCover, float lightIntensity,
   payload += "}";
 
   // Initialize HTTP request
-  http.begin(serverName);
+  http.begin(serverAddress+sendDataPath);
   http.addHeader("Content-Type", "application/json");
 
   // Send POST request
