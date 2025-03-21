@@ -11,9 +11,9 @@
 #define WEBSERVER_H
 #include <ESPAsyncWebServer.h>
 // WiFi credentials
-String serverAddress = "https://capstone-project-iot-1.onrender.com/api/sensor/"; 
-String sendDataPath = "data"; 
-String getDataPath = "getData"; 
+String serverAddress = "https://capstone-project-iot-1.onrender.com/api/"; 
+String sendSensorDataPath = "sensor/create"; 
+String getSensorDataPath = "sensor/getData"; 
 WiFiManager wifiManager;
 AsyncWebServer server(80);
 String deviceID = "";
@@ -21,6 +21,10 @@ String deviceID = "";
 // DHT sensor configuration
 #define DHTTYPE DHT11
 #define DHTPIN 4
+
+#define LedRPin 12
+#define LedGPin 27
+#define LedBPin 14
 // Sensor pins
 int moisturePin = 36; // Soil moisture sensor
 int rainPin = 39;     // Rain sensor
@@ -38,6 +42,8 @@ bool lightState = false;
 bool fanState = false;
 
 bool isStart = false;
+
+int count = 0;
 
 // Threshold values
 float tempThreshold = 30.0;        // Temperature threshold in °C
@@ -106,7 +112,7 @@ void connectWiFi() {
 void getDataFromServer() {
   HTTPClient http;
   
-  String url = serverAddress + getDataPath; // Construct the full URL
+  String url = serverAddress + getSensorDataPath; // Construct the full URL
   Serial.println("Requesting data from: " + url);
 
   http.begin(url); // Initialize HTTP request
@@ -133,15 +139,18 @@ void sendDataToServer(float soilMoisture, float rainCover, float lightIntensity,
 
   // Create JSON payload
   String payload = "{";
-  payload += "\"soilMoisture\":" + String(soilMoisture) + ",";
-  payload += "\"rainCover\":" + String(rainCover) + ",";
-  payload += "\"lightIntensity\":" + String(lightIntensity) + ",";
-  payload += "\"humidity\":" + String(humidity) + ",";
-  payload += "\"temperature\":" + String(temperature);
+  payload += "\"idDevice\": \"" + String(deviceID) + "\",";
+  payload += "\"ipDevice\": \"" + String(soilMoisture) + "\",";
+  payload += "\"soilMoisture\": " + String(soilMoisture) + ",";
+  payload += "\"temperature\": " + String(temperature) + ",";
+  payload += "\"humidity\": " + String(humidity) + ",";
+  payload += "\"rainCover\": " + String(rainCover) + ",";
+  payload += "\"lightIntensity\": " + String(lightIntensity);
   payload += "}";
 
   // Initialize HTTP request
-  http.begin(serverAddress+sendDataPath);
+  Serial.println(payload);
+  http.begin(serverAddress+sendSensorDataPath);
   http.addHeader("Content-Type", "application/json");
 
   // Send POST request
@@ -224,6 +233,9 @@ void setup() {
   pinMode(fanPin, OUTPUT);
   pinMode(pumpPin, OUTPUT);
   pinMode(bulbPin, OUTPUT);
+  pinMode(LedBPin, OUTPUT);
+  pinMode(LedGPin, OUTPUT);
+  pinMode(LedRPin, OUTPUT);
 
 
 
@@ -237,15 +249,33 @@ void setup() {
   connectWiFi();
   Serial.println("ESP32 iP: "+WiFi.localIP().toString());
 }
+void setColor(int red, int green, int blue) {
+  analogWrite(LedRPin, red);
+  analogWrite(LedGPin, green);
+  analogWrite(LedBPin, blue);
+}
+void rainbowCycle() {
+  int delayTime = 10; // Adjust for speed
+
+  for (int i = 0; i < 256; i++) { setColor(255, i, 0); delay(delayTime); } // Red to Yellow
+  for (int i = 0; i < 256; i++) { setColor(255 - i, 255, 0); delay(delayTime); } // Yellow to Green
+  for (int i = 0; i < 256; i++) { setColor(0, 255, i); delay(delayTime); } // Green to Cyan
+  for (int i = 0; i < 256; i++) { setColor(0, 255 - i, 255); delay(delayTime); } // Cyan to Blue
+  for (int i = 0; i < 256; i++) { setColor(i, 0, 255); delay(delayTime); } // Blue to Magenta
+  for (int i = 0; i < 256; i++) { setColor(255, 0, 255 - i); delay(delayTime); } // Magenta to Red
+}
+
 
 void loop() {
   if (Serial.available()) {  // Check if data is available
     char inputChar = Serial.read();  // Read the character
+    
     if(inputChar)
       isStart = !isStart;
   }
   if(!isStart)
     return;
+  setColor(0,256,0);
   pulseCount = 0; // Reset pulse count
   delay(1000);    // Measure pulses for 1 second
   flowRate = pulseCount / calibrationFactor;  // Convert to L/min
@@ -262,7 +292,7 @@ void loop() {
     delay(delayTime);
     return;
   }
-
+  
   // Print sensor data
   Serial.println("Sensor Data:");
   Serial.printf("Water Flow Rate: %.2f L/min\n", flowRate);
@@ -278,7 +308,7 @@ void loop() {
   controlFan(temperature);
   controlPump(soilMoisture);
   // sendDataToServer(soilMoisture,rainCover,lightIntensity,humidity,temperature);
-  getDataFromServer();
+  // getDataFromServer();
   Serial.println("------------------------------------------------------------------");
   // delay(delayTime); // Adjust delay as needed
 }
