@@ -4,10 +4,10 @@
 #include "config.h"
 #include <DHT.h>
 
+// Chân cảm biến
 #define DHTPIN 4
 #define DHTTYPE DHT11
 
-// Chân cảm biến
 extern int moisturePin;
 extern int rainPin;
 extern int lightPin;

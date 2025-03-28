@@ -1,4 +1,4 @@
-#include "sensors_manager.h"
+#include "sensors.h"
 
 int moisturePin = 36;
 int rainPin = 39;

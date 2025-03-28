@@ -1,29 +1,202 @@
-#include "control.h"
+#include "controls_manager.h"
+#include "server_api.h"
 
-void initControl() {
-    pinMode(pumpPin, OUTPUT);
+void initControls()
+{
+    // pinMode(pumpPin, OUTPUT);
     pinMode(bulbPin, OUTPUT);
-    pinMode(fanPin, OUTPUT);
+    pinMode(lightPin, OUTPUT);
 
-    digitalWrite(pumpPin, HIGH);
+    pinMode(ledBPin, OUTPUT);
+    pinMode(ledGPin, OUTPUT);
+    pinMode(ledRPin, OUTPUT);
+
+    // digitalWrite(pumpPin, HIGH);
     digitalWrite(bulbPin, HIGH);
-    digitalWrite(fanPin, HIGH);
+    digitalWrite(lightPin, HIGH);
+}
+void controlLed(int red, int green, int blue)
+{
+    analogWrite(ledRPin, red);
+    analogWrite(ledGPin, green);
+    analogWrite(ledBPin, blue);
 }
 
-void controlFan(float temperature) {
-    if (temperature > 30.0) {
-        Serial.println("Turning on fan...");
-        digitalWrite(fanPin, LOW);
-    } else {
-        digitalWrite(fanPin, HIGH);
+Control::Control(int pin)
+{
+    this->name = "";
+    this->controlId = "";
+    this->pin = pin;
+    this->status = false;
+    this->threshold_min = 0;
+    this->threshold_max = 100;
+    this->mode = "manual";
+    this->isRunning = false;
+
+    // Initialize the pin as output
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, status ? LOW : HIGH); // Assuming LOW = on, HIGH = off for relay
+}
+
+// Getters
+String Control::getName() const
+{
+    return name;
+}
+
+String Control::getControlId() const
+{
+    return controlId;
+}
+
+bool Control::getStatus() const
+{
+    return status;
+}
+
+int Control::getThresholdMin() const
+{
+    return threshold_min;
+}
+
+int Control::getThresholdMax() const
+{
+    return threshold_max;
+}
+
+String Control::getMode() const
+{
+    return mode;
+}
+
+// Setters
+void Control::setStatus(bool newStatus)
+{
+    status = newStatus;
+    digitalWrite(pin, status ? LOW : HIGH); // LOW = on, HIGH = off for relay
+}
+
+void Control::setThresholdMin(int min)
+{
+    threshold_min = min;
+}
+
+void Control::setThresholdMax(int max)
+{
+    threshold_max = max;
+}
+
+void Control::setMode(String newMode)
+{
+    mode = newMode;
+}
+void Control::setControlId(String controlId)
+{
+    controlId = controlId;
+}
+// Control methods
+void Control::turnOn()
+{
+    setStatus(true);
+    isRunning = true;
+    controlLed(0,255,0);
+    Serial.println("Turning "+name+" on...");
+}
+
+void Control::turnOff()
+{
+    setStatus(false);
+    isRunning = false;
+    controlLed(255,0,0);
+    delay(1000);
+    controlLed(0,0,0);
+
+    Serial.println("Turning "+name+" off...");
+}
+void Control::turn(bool isOn)
+{
+    isRunning = isOn;
+    if(isOn){
+        Serial.println("Turning "+name+" on...");
+        controlLed(0,255,0);
+    }else{
+        Serial.println("Turning "+name+" off...");
+        controlLed(255,0,0);
+        delay(1000);
+        controlLed(0,0,0);
     }
 }
 
-void controlPump(float soilMoisture) {
-    if (soilMoisture < 40.0) {
-        Serial.println("Turning on pump...");
-        digitalWrite(pumpPin, LOW);
-    } else {
-        digitalWrite(pumpPin, HIGH);
+void Control::toggle()
+{
+    setStatus(!status);
+    isRunning = status;
+    Serial.println(status ? "Turning "+name+" on..." : "Turning "+name+" off...");
+}
+
+// JSON serialization
+String Control::toJson() const
+{
+    String json = "{";
+    json += "\"id\":\"" + controlId + "\",";
+    json += "\"name\":\"" + name + "\",";
+    json += "\"status\":" + String(status ? "true" : "false") + ",";
+    json += "\"threshold_min\":" + String(threshold_min) + ",";
+    json += "\"threshold_max\":" + String(threshold_max) + ",";
+    json += "\"mode\":\"" + mode + "\"";
+    json += "}";
+    return json;
+}
+
+// Update method for threshold-based control
+void Control::update(float value)
+{
+    if (mode == "manual")
+    {
+        if(status && !isRunning){
+            turnOn();
+        }else if(!status && isRunning){
+            turnOff();
+        }
+    }  
+    else if (mode == "schedule")
+    {
+        // Placeholder for schedule-based control (implement as needed)
+    }
+    else if (mode == "threshold")
+    {
+        if (value < threshold_min)
+        {
+            // Start the pump if value is below the minimum threshold
+            if (!isRunning)
+            {
+                turnOn();
+            }
+        }
+        else if (value >= threshold_max)
+        {
+            // Stop the pump only when the value reaches or exceeds the maximum threshold
+            if (isRunning)
+            {
+                turnOff();
+            }
+        }
+        // Note: If threshold_min <= value < threshold_max, the pump continues running
+        // until value >= threshold_max, ensuring it runs until max is reached
+    }
+}
+
+// Update from API data
+void Control::updateFromApi(const StaticJsonDocument<512> &doc)
+{
+    if (doc.containsKey("name") && doc.containsKey("status") &&
+        doc.containsKey("threshold_min") && doc.containsKey("threshold_max") &&
+        doc.containsKey("mode") && doc.containsKey("_id"))
+    {
+        setControlId(doc["_id"].as<String>());
+        setStatus(doc["status"].as<bool>());
+        setThresholdMin(doc["threshold_min"].as<int>());
+        setThresholdMax(doc["threshold_max"].as<int>());
+        setMode(doc["mode"].as<String>());
     }
 }
