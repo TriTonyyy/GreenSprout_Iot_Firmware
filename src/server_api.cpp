@@ -1,21 +1,6 @@
 #include "server_api.h"
+#include "time_manager.h"
 
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); 
-
-// Initialize NTP time client
-void initTime() {
-    timeClient.begin();  // Start the NTP client
-}
-// Function to get the current formatted time as a string
-String getCurrentTime() {
-    if (timeClient.update()) {  // Only get time if update is successful
-        return timeClient.getFormattedTime();  // Return the formatted time (hh:mm:ss)
-    } else {
-        Serial.println("Failed to get time from NTP server");
-        return "00:00:00";  // Return a default value or handle the error as needed
-    }
-}
 String sendSensor(String type, float value, bool status, String apiPath, bool isPost) {
     StaticJsonDocument<128> doc;
     doc["type"] = type;

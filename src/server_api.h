@@ -2,13 +2,7 @@
 #define SERVER_API_H
 
 #include "config.h"
-#include <NTPClient.h>
-#include <WiFiUdp.h>
 
-extern WiFiUDP ntpUDP;  // NTP UDP instance
-extern NTPClient timeClient;  // NTP client instance
-// Initialize NTP client
-void initTime();
 
 String sendSensor(String type, float value, bool status, String apiPath, bool isPost);
 String sendControl(String name, bool status, float min, float max, String mode, String apiPath, bool isPost);

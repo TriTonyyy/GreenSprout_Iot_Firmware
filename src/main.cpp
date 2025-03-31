@@ -4,6 +4,7 @@
 #include "controls_manager.h"
 #include "server_api.h"
 #include "sensor_manager.h"
+#include "time_manager.h"
 
 unsigned long lastMeasurementTime = 0;
 const unsigned long measurementInterval = 300000; 
@@ -19,6 +20,8 @@ Control* pumpControl = new Control((int)pumpPin);
 void setup() {
     Serial.begin(9600);
     connectWiFi();
+    initTime();
+    Serial.println("Time: "+ getCurrentTime());
     initSensors();
     initControls();
     initPreferences();  // Initialize Preferences

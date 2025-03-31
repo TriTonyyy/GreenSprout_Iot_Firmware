@@ -15,6 +15,8 @@ String createDevicePath = "device/createDevice";
 String getDevicePath = "device/detailDeviceBy/"; 
 String updateDevicePath = "device/updateDeviceBy/"; 
 
+String getSchedulePath = "schedule/detailScheduleBy/"; 
+
 String deviceID = "";  // Lưu ID thiết bị
 String soilMoistureSensorID = "";
 String lightSensorID = "";

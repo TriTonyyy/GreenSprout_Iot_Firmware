@@ -48,8 +48,6 @@ public:
   void setControlId(String controlId);
 
   // Control methods
-  void turnOn();
-  void turnOff();
   void toggle();
   void turn(bool isOn);
   // JSON serialization

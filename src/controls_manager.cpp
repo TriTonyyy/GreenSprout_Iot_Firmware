@@ -95,26 +95,9 @@ void Control::setControlId(String controlId)
     controlId = controlId;
 }
 // Control methods
-void Control::turnOn()
-{
-    setStatus(true);
-    isRunning = true;
-    controlLed(0,255,0);
-    Serial.println("Turning "+name+" on...");
-}
-
-void Control::turnOff()
-{
-    setStatus(false);
-    isRunning = false;
-    controlLed(255,0,0);
-    delay(1000);
-    controlLed(0,0,0);
-
-    Serial.println("Turning "+name+" off...");
-}
 void Control::turn(bool isOn)
 {
+    setStatus(isOn);
     isRunning = isOn;
     if(isOn){
         Serial.println("Turning "+name+" on...");
@@ -125,6 +108,8 @@ void Control::turn(bool isOn)
         delay(1000);
         controlLed(0,0,0);
     }
+    sendControl(name,status,threshold_min,threshold_max,mode,updateControlPath+controlId,false);
+
 }
 
 void Control::toggle()
@@ -154,9 +139,9 @@ void Control::update(float value)
     if (mode == "manual")
     {
         if(status && !isRunning){
-            turnOn();
+            turn(true);
         }else if(!status && isRunning){
-            turnOff();
+            turn(false);
         }
     }  
     else if (mode == "schedule")
@@ -170,7 +155,7 @@ void Control::update(float value)
             // Start the pump if value is below the minimum threshold
             if (!isRunning)
             {
-                turnOn();
+                turn(true);
             }
         }
         else if (value >= threshold_max)
@@ -178,7 +163,7 @@ void Control::update(float value)
             // Stop the pump only when the value reaches or exceeds the maximum threshold
             if (isRunning)
             {
-                turnOff();
+                turn(false);
             }
         }
         // Note: If threshold_min <= value < threshold_max, the pump continues running
