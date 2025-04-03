@@ -2,14 +2,14 @@
 #define SERVER_API_H
 
 #include "config.h"
+#include <vector>
 
 
-String sendSensor(String type, float value, bool status, String apiPath, bool isPost);
+String sendSensor(String type, float value, String apiPath, bool isPost);
 String sendControl(String name, bool status, float min, float max, String mode, String apiPath, bool isPost);
-String sendDevice(String deviceID, String sensorID, String controlID, String apiPath, bool isPost);
+String sendDevice(String deviceID, std::vector<String> idSensorsList, std::vector<String> idControlsList, String apiPath, bool isPost);
 String sendData(String payload, String apiPath, bool isPost);
 StaticJsonDocument<512> getData(String apiPath);
-bool isExit(String apiPath);
 
 
 #endif

@@ -11,8 +11,8 @@
 
     void storeSensorData(const String& sensorName, float value) {
         if (isnan(value)) return; // Ignore invalid values
-        String countKey = sensorName + "_count";
-        String sumKey = sensorName + "_sum";
+        String countKey = sensorName + "_c";
+        String sumKey = sensorName + "_s";
         // Check if values exist; if not, initialize them
         if (!preferences.isKey(sumKey.c_str())) {
             preferences.putFloat(sumKey.c_str(), 0.0f);  // Initialize sum
@@ -35,8 +35,8 @@
 
     // Calculate the average of stored sensor data
     float calculateAverage(const String& sensorName) {
-        String countKey = sensorName + "_count";
-        String sumKey = sensorName + "_sum";
+        String countKey = sensorName + "_c";
+        String sumKey = sensorName + "_s";
         float average = preferences.getFloat(sumKey.c_str(), 0) / preferences.getInt(countKey.c_str(), 0);;
         return average;
     }
@@ -44,8 +44,8 @@
 
     // Reset stored data for a specific sensor
     void resetSensorData(const String& sensorName) {
-        String countKey = sensorName + "_count";
-        String sumKey = sensorName + "_sum";
+        String countKey = sensorName + "_c";
+        String sumKey = sensorName + "_s";
         preferences.putInt(countKey.c_str(),0);
         preferences.putFloat(sumKey.c_str(),0);
     }

@@ -1,12 +1,12 @@
 #include "config.h"
 
 String serverAddress = "https://capstone-project-iot-1.onrender.com/api/";
-// String serverAddress = "http://26.216.144.228:8000/api/";
+// String serverAddress = "http://192.168.1.214:8000/api/";
 String createControlPath = "control/createControl"; 
 String getControlPath = "control/detailControlBy/"; 
 String updateControlPath = "control/updateControlBy/"; 
 
-String createSensorPath = "sensor/create"; 
+String createSensorPath = "sensor/createSensor"; 
 // String createSensorPath = "sensor/createSensor"; 
 String getSensorPath = "sensor/detailSensorBy/"; 
 String updateSensorPath = "sensor/updateSensorBy/"; 
@@ -18,10 +18,12 @@ String updateDevicePath = "device/updateDeviceBy/";
 String getSchedulePath = "schedule/detailScheduleBy/"; 
 
 String deviceID = "";  // Lưu ID thiết bị
-String soilMoistureSensorID = "";
-String lightSensorID = "";
+String streamLabel = "stream";
+String humidityLabel = "humidity";
+String moistureLabel = "moisture";
+String luminosityLabel = "luminosity";
+String temperatureLabel = "temperature";
 
-String waterControlID = "";
 AsyncWebServer server(80);  // Khởi tạo server
 
 

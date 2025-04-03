@@ -24,7 +24,6 @@ String getCurrentTime() {
             case 6: weekDay = "Friday"; break;
             case 7: weekDay = "Saturday"; break;
         }
-        Serial.println("WeekDay: "+ weekDay);
         return timeClient.getFormattedTime();  // Return the formatted time (hh:mm:ss)
     } else {
         Serial.println("Failed to get time from NTP server");

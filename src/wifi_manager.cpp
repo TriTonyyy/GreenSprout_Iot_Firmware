@@ -10,8 +10,6 @@ void connectWiFi() {
         ESP.restart();
     }
     Serial.println("Connected to WiFi!");
-    Serial.print("ESP32 IP Address: ");
-    Serial.println(WiFi.localIP());
     WiFi.setAutoReconnect(true);
     WiFi.persistent(true);
 

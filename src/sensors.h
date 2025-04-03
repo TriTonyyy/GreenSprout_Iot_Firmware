@@ -9,17 +9,18 @@
 #define DHTTYPE DHT11
 
 extern int moisturePin;
-extern int rainPin;
-extern int lightPin;
-extern int waterFlowPin;
+// extern int rainPin;
+extern int luminosityPin;
+extern int streamPin;
 
 // DHT sensor
 extern DHT dht;
 
 void initSensors();
-float readSoilMoisture();
-float readRainSensor();
-float readLightSensor();
+float readMoisture();
+// float readRainSensor();
+float readLuminosity();
+float readStream();
 float readTemperature();
 float readHumidity();
 

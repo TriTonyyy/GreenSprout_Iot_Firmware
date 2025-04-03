@@ -12,28 +12,28 @@
 #define ledBPin 14
 
 
-// Control* pumControl;
-// Control* pumControl;
-// Control* pumControl;
+
 void initControls();
 void controlLed(int red, int green, int blue);
 
 class Control {
 private:
   String name;           // Device name (e.g., "pump")
-  String controlId;      // Control ID from the API
+  String control_id;      // Control ID from the API
   bool status;           // Device state (true = on, false = off)
   int threshold_min;     // Minimum threshold
   int threshold_max;     // Maximum threshold
   String mode;           // Mode ("manual", "schedule", or "threshold")
   uint8_t pin;           // GPIO pin for controlling the device
-  bool isRunning;      // Track if the pump is currently running
+  bool is_running;      // Track if the pump is currently running
+  std::vector<String> schedules_id;
 
 public:
   // Constructor
   Control(int pin);
   // Getters
   String getName() const;
+  std::vector<String> getSchedulesID() const;
   String getControlId() const;
   bool getStatus() const;
   int getThresholdMin() const;
@@ -41,6 +41,7 @@ public:
   String getMode() const;
 
   // Setters
+  void setSchedulesID(std::vector<String> ids);
   void setStatus(bool newStatus);
   void setThresholdMin(int min);
   void setThresholdMax(int max);

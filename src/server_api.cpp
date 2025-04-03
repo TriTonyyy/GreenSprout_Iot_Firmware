@@ -1,15 +1,15 @@
 #include "server_api.h"
 #include "time_manager.h"
 
-String sendSensor(String type, float value, bool status, String apiPath, bool isPost) {
+String sendSensor(String type, float value, String apiPath, bool isPost) {
     StaticJsonDocument<128> doc;
     doc["type"] = type;
-    doc["value"] = 25;
-    doc["status"] = true;
+    doc["value"] = value;
 
     String payload;
     serializeJson(doc, payload);
     String id = sendData(payload,apiPath,isPost);
+    // Serial.println("Sensor "+type+" id: "+id);
     return id;
 }
 String sendControl(String name, bool status, float min, float max, String mode, String apiPath, bool isPost) {
@@ -19,29 +19,36 @@ String sendControl(String name, bool status, float min, float max, String mode, 
     doc["threshold_min"] = min;
     doc["threshold_max"] = max;
     doc["mode"] = mode;
-
+    JsonArray schedules = doc.createNestedArray("schedules");
     // Convert JSON object to a String
     String payload;
     serializeJson(doc, payload);
     String id = sendData(payload,apiPath,isPost);
+    // Serial.println("Control "+name+" id: "+id);
+
     return id;
 }
-String sendDevice(String deviceID, String sensorID, String controlID, String apiPath, bool isPost) {
+String sendDevice(String deviceID, std::vector<String> idSensorsList, std::vector<String> idControlsList, String apiPath, bool isPost) {
     StaticJsonDocument<256> doc;
     doc["id_esp"] = deviceID;
+    doc["name"] = "New Garden";
     doc["time"] = getCurrentTime();
     doc["status"] = true;
     JsonArray members = doc.createNestedArray("members");
     JsonArray sensors = doc.createNestedArray("sensors");
-    JsonObject sensor = sensors.createNestedObject();
-    sensor["sensorId"] = sensorID;
+    for (String id : idSensorsList) {
+        JsonObject sensor = sensors.createNestedObject();
+        sensor["sensorId"] = id;
+    }
     JsonArray controls = doc.createNestedArray("controls");
-    JsonObject control = controls.createNestedObject();
-    control["controlId"] = controlID;
+    for (String id : idControlsList) {
+        JsonObject control = controls.createNestedObject();
+        control["controlId"] = id;
+    }
     // Chuyển JSON thành chuỗi
     String payload;
     serializeJson(doc, payload);
-    Serial.println(payload);
+    // Serial.println(payload);
     String id = sendData(payload,apiPath,isPost);
     return id;
 }
@@ -52,7 +59,7 @@ String sendData(String payload, String apiPath, bool isPost) {
     http.begin(serverAddress + apiPath);
     http.addHeader("Content-Type", "application/json");
 
-    Serial.println("Sending request to: " + serverAddress + apiPath);
+    // Serial.println("Sending request to: " + serverAddress + apiPath);
     
     // Send HTTP request (POST or PUT)
     int httpResponseCode = isPost ? http.POST(payload) : http.PUT(payload);
@@ -93,19 +100,17 @@ StaticJsonDocument<512> getData(String apiPath) {
     int httpResponseCode = http.GET();  // Send GET request
     StaticJsonDocument<512> doc;
     
-    if (httpResponseCode > 0) {
-        // Serial.printf("HTTP Response Code: %d\n", httpResponseCode);
+    if (httpResponseCode == 200 || httpResponseCode == 404) {
+        Serial.printf("HTTP Response Code: %d\n", httpResponseCode);
         String responseData = http.getString();
-        // Serial.println("Response: " + responseData);
+        Serial.println("Response: " + responseData);
         DeserializationError error = deserializeJson(doc, responseData);
 
-        if (error) {
+        if (error) {    
             Serial.print("Failed to parse JSON: ");
             Serial.println(error.f_str());
         }
-
-        
-    } else {
+    }else{
         Serial.printf("GET Request Failed: %s\n", http.errorToString(httpResponseCode).c_str());
     }
 

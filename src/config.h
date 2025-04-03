@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <WiFiManager.h>
 #include <ESPAsyncWebServer.h>
+#include <AsyncTCP.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
@@ -22,13 +23,17 @@ extern String createDevicePath;
 extern String getDevicePath; 
 extern String updateDevicePath; 
 
+extern String getSchedulePath; 
+
 // ID thiết bị
 extern String deviceID;
 
-extern String soilMoistureSensorID;
-extern String lightSensorID;
+extern String streamLabel;
+extern String humidityLabel;
+extern String moistureLabel;
+extern String luminosityLabel;
+extern String temperatureLabel;
 
-extern String waterControlID;
 
 
 // Khai báo server
