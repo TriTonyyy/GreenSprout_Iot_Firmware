@@ -1,7 +1,7 @@
 #include "config.h"
 
-String serverAddress = "https://capstone-project-iot-1.onrender.com/api/";
-// String serverAddress = "http://192.168.1.214:8000/api/";
+// String serverAddress = "https://capstone-project-iot-1.onrender.com/api/";
+String serverAddress = "http://192.168.1.248:8000/api/";
 String createControlPath = "control/createControl"; 
 String getControlPath = "control/detailControlBy/"; 
 String updateControlPath = "control/updateControlBy/"; 

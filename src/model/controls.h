@@ -4,7 +4,7 @@
 #include "config.h"
 
 #define pumpPin 16
-#define bulbPin 19
+#define fanPin 19
 #define lightPin 21
 
 #define ledRPin 12
@@ -19,7 +19,6 @@ void controlLed(int red, int green, int blue);
 class Control {
 private:
   String name;           // Device name (e.g., "pump")
-  String control_id;      // Control ID from the API
   bool status;           // Device state (true = on, false = off)
   int threshold_min;     // Minimum threshold
   int threshold_max;     // Maximum threshold
@@ -30,11 +29,10 @@ private:
 
 public:
   // Constructor
-  Control(int pin);
+  Control(String name, bool status, int threshold_min, int threshold_max, String mode, int pin);
   // Getters
   String getName() const;
   std::vector<String> getSchedulesID() const;
-  String getControlId() const;
   bool getStatus() const;
   int getThresholdMin() const;
   int getThresholdMax() const;
@@ -46,7 +44,6 @@ public:
   void setThresholdMin(int min);
   void setThresholdMax(int max);
   void setMode(String newMode);
-  void setControlId(String controlId);
 
   // Control methods
   void toggle();

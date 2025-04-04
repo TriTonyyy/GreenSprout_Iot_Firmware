@@ -1,9 +1,5 @@
 #include "sensors.h"
 
-int moisturePin = 36;
-// int rainPin = 39;
-int luminosityPin = 34;
-int streamPin = 35;
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -34,4 +30,29 @@ float readTemperature() {
 
 float readHumidity() {
     return dht.readHumidity();
+}
+
+Sensor::Sensor(String type, long value){
+    this->type = type;
+    this->value = value;
+}   
+String Sensor::getType() const{
+    return type;
+}
+long Sensor::getValue() const{
+    return value;
+}
+void Sensor::setType(String newType) {
+    type = newType;
+}
+void Sensor::setValue(long newValue) {
+    value = newValue;
+}
+void Sensor::updateFromJson(const StaticJsonDocument<512> &doc)
+{
+    if (doc.containsKey("type") && doc.containsKey("value"))
+    {
+        setStatus(doc["type"].as<String>());
+        setThresholdMin(doc["value"].as<long>());
+    }
 }

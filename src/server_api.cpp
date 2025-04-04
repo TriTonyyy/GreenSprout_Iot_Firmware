@@ -28,27 +28,34 @@ String sendControl(String name, bool status, float min, float max, String mode, 
 
     return id;
 }
-String sendDevice(String deviceID, std::vector<String> idSensorsList, std::vector<String> idControlsList, String apiPath, bool isPost) {
+String sendDevice(String deviceID, std::vector<Sensor> sensors, std::vector<Control> controls, String apiPath, bool isPost) {
     StaticJsonDocument<256> doc;
     doc["id_esp"] = deviceID;
-    doc["name"] = "New Garden";
-    doc["time"] = getCurrentTime();
-    doc["status"] = true;
+    doc["name_area"] = "New Garden";
+    doc["img_area"] = "";
+    doc["update_at"] = getDateTime();
+    doc["create_at"] = getDateTime();
     JsonArray members = doc.createNestedArray("members");
-    JsonArray sensors = doc.createNestedArray("sensors");
-    for (String id : idSensorsList) {
-        JsonObject sensor = sensors.createNestedObject();
-        sensor["sensorId"] = id;
+    JsonArray sensorsJS = doc.createNestedArray("sensors");
+    for (Sensor sensor : sensors) {
+        JsonObject sensorJs = sensorsJS.createNestedObject();
+        sensorJs["type"] = sensor.getType();
+        sensorJs["value"] = sensor.getValue();
     }
-    JsonArray controls = doc.createNestedArray("controls");
-    for (String id : idControlsList) {
-        JsonObject control = controls.createNestedObject();
-        control["controlId"] = id;
+    JsonArray controlsJS = doc.createNestedArray("controls");
+    for (Control control : controls) {
+        JsonObject controlJs = controlsJS.createNestedObject();
+        controlJs["name"] = control.getName();
+        controlJs["status"] = control.getStatus();
+        controlJs["threshold_min"] = control.getThresholdMin();
+        controlJs["threshold_max"] = control.getThresholdMax();
+        controlJs["mode"] = control.getMode();
+        JsonArray schedules = controlJs.createNestedArray("schedules");
     }
     // Chuyển JSON thành chuỗi
     String payload;
     serializeJson(doc, payload);
-    // Serial.println(payload);
+    Serial.println(payload);
     String id = sendData(payload,apiPath,isPost);
     return id;
 }

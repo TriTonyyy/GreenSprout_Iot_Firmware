@@ -1,7 +1,7 @@
 #include "config.h"
 #include "wifi_manager.h"
-#include "sensors.h"
-#include "controls_manager.h"
+#include "model/sensors.h"
+#include "model/controls.h"
 #include "server_api.h"
 #include "sensor_manager.h"
 #include "time_manager.h"
@@ -11,12 +11,10 @@ unsigned long lastMeasurementTime = measurementInterval;
 
 
 // String rainCoverName = "rain";
-Control* waterControl = new Control((int)pumpPin);
-Control* lightControl = new Control((int)pumpPin);
-std::vector<String> idSensorsList;
-std::vector<String> idControlsList;
+std::vector<Sensor> sensors;
+std::vector<Control> controls;
 
-void setup() {
+void setup() {  
     Serial.begin(9600);
     connectWiFi();
     initTime();
@@ -28,32 +26,43 @@ void setup() {
     StaticJsonDocument<512> responseData = getData(getDevicePath+deviceID);
     if (!responseData.containsKey("data")) {    
         // Create sensors and controls here if necessary
-        idSensorsList.push_back(sendSensor(streamLabel, 0, createSensorPath, true));
-        idSensorsList.push_back(sendSensor(humidityLabel, 0, createSensorPath, true));
-        idSensorsList.push_back(sendSensor(moistureLabel, 0, createSensorPath, true));
-        idSensorsList.push_back(sendSensor(luminosityLabel, 0, createSensorPath, true));
-        idSensorsList.push_back(sendSensor(temperatureLabel, 0, createSensorPath, true));
+        Sensor streamSensor(streamLabel,0);
+        Sensor humiditySensor(humidityLabel,0);
+        Sensor moistureSensor(moistureLabel,0);
+        Sensor luminositySensor(luminosityLabel,0);
+        Sensor temperatureSensor(temperatureLabel,0);
 
-        idControlsList.push_back(sendControl("water", false, 30, 80, "manual",createControlPath,true));
-        idControlsList.push_back(sendControl("light", false, 30, 80, "manual",createControlPath,true));
+        sensors.push_back(streamSensor);
+        sensors.push_back(humiditySensor);
+        sensors.push_back(moistureSensor);
+        sensors.push_back(luminositySensor);
+        sensors.push_back(temperatureSensor);
 
-        sendDevice(deviceID ,idSensorsList,idControlsList,createDevicePath,true);
+        Control waterControl("water",false,20,80,"manual",(int)pumpPin);
+        Control lightControl("light",false,20,80,"manual",(int)lightPin);
+        Control windControl("wind",false,20,80,"manual",(int)fanPin);
+
+        controls.push_back(waterControl);
+        controls.push_back(lightControl);
+        controls.push_back(windControl);
+
+        sendDevice(deviceID ,sensors,controls,createDevicePath,true);
     }else{
         for (size_t i = 0; i < responseData["data"]["sensors"].size(); i++) {
-            String sensorId = responseData["data"]["sensors"][i]["sensorId"].as<String>();
+            Sensor sensor = responseData["data"]["sensors"][i];
             idSensorsList.push_back(sensorId);
         }
         for (size_t i = 0; i < responseData["data"]["controls"].size(); i++) {
-            String controlId = responseData["data"]["controls"][i]["controlId"].as<String>();
+            String controlId = responseData["data"]["controls"][i];
             idControlsList.push_back(controlId);
         }
     }
 }
 void receiveControlData(){
-    if(idControlsList.size() == 2){
-        waterControl->updateFromApi(getData(getControlPath+idControlsList[0]));
-        lightControl->updateFromApi(getData(getControlPath+idControlsList[1]));
-    }
+    // if(idControlsList.size() == 2){
+    //     waterControl->updateFromApi(getData(getControlPath+idControlsList[0]));
+    //     lightControl->updateFromApi(getData(getControlPath+idControlsList[1]));
+    // }
 }
 void collectData(){
     float moisture = readMoisture();
@@ -64,7 +73,7 @@ void collectData(){
     // Store the data in Preferences if it's valid
     if (!isnan(moisture)) {
         storeSensorData(moistureLabel, moisture);
-        waterControl->update(moisture);
+        controls[0].update(moisture);
     }
     if (!isnan(luminosity)) {
         storeSensorData(luminosityLabel, luminosity);
@@ -106,11 +115,11 @@ void sendToServer(){
         float avgHumidity = calculateAverage(humidityLabel);
 
         // Send average data to the server
-        sendSensor(streamLabel, avgStream,updateSensorPath+idSensorsList[0],false);
-        sendSensor(humidityLabel, avgHumidity,updateSensorPath+idSensorsList[1],false);
-        sendSensor(moistureLabel, avgMoisture,updateSensorPath+idSensorsList[2],false);
-        sendSensor(luminosityLabel, avgLuminosity,updateSensorPath+idSensorsList[3],false);
-        sendSensor(temperatureLabel, avgTemperature,updateSensorPath+idSensorsList[4],false);
+        // sendSensor(streamLabel, avgStream,updateSensorPath+idSensorsList[0],false);
+        // sendSensor(humidityLabel, avgHumidity,updateSensorPath+idSensorsList[1],false);
+        // sendSensor(moistureLabel, avgMoisture,updateSensorPath+idSensorsList[2],false);
+        // sendSensor(luminosityLabel, avgLuminosity,updateSensorPath+idSensorsList[3],false);
+        // sendSensor(temperatureLabel, avgTemperature,updateSensorPath+idSensorsList[4],false);
         
         resetStoreData();
     }
@@ -120,9 +129,9 @@ void sendToServer(){
 
 void loop() {
     // Collect sensor data
-    receiveControlData();
-    collectData();
-    sendToServer();
-    resetStoreData();
+    // receiveControlData();
+    // collectData();
+    // sendToServer();
+    // resetStoreData();
 }
 

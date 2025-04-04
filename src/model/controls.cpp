@@ -1,19 +1,19 @@
-#include "controls_manager.h"
+#include "controls.h"
 #include "server_api.h"
 #include <vector>
 #include <ArduinoJson.h>
 void initControls()
 {
-    // pinMode(pumpPin, OUTPUT);
-    pinMode(bulbPin, OUTPUT);
+    pinMode(pumpPin, OUTPUT);
+    pinMode(fanPin, OUTPUT);
     pinMode(lightPin, OUTPUT);
 
     pinMode(ledBPin, OUTPUT);
     pinMode(ledGPin, OUTPUT);
     pinMode(ledRPin, OUTPUT);
 
-    // digitalWrite(pumpPin, HIGH);
-    digitalWrite(bulbPin, HIGH);
+    digitalWrite(pumpPin, HIGH);
+    digitalWrite(fanPin, HIGH);
     digitalWrite(lightPin, HIGH);
 }
 void controlLed(int red, int green, int blue)
@@ -23,15 +23,14 @@ void controlLed(int red, int green, int blue)
     analogWrite(ledBPin, blue);
 }
 
-Control::Control(int pin)
+Control::Control(String name, bool status, int threshold_min, int threshold_max, String mode, int pin)
 {
-    this->name = "";
-    this->control_id = "";
+    this->name = name;
     this->pin = pin;
-    this->status = false;
-    this->threshold_min = 0;
-    this->threshold_max = 100;
-    this->mode = "manual";
+    this->status = status;
+    this->threshold_min = threshold_min;
+    this->threshold_max = threshold_max;
+    this->mode = mode;
     this->is_running = false;
     this->schedules_id = {};
 
@@ -48,10 +47,6 @@ String Control::getName() const
 std::vector<String> Control::getSchedulesID() const
 {
     return schedules_id;
-}
-String Control::getControlId() const
-{
-    return control_id;
 }
 
 bool Control::getStatus() const
@@ -99,10 +94,6 @@ void Control::setSchedulesID(std::vector<String> ids)
 {
     schedules_id = ids;
 }
-void Control::setControlId(String controlId)
-{
-    controlId = controlId;
-}
 // Control methods
 void Control::turn(bool isOn)
 {
@@ -132,7 +123,6 @@ void Control::toggle()
 String Control::toJson() const
 {
     String json = "{";
-    json += "\"id\":\"" + control_id + "\",";
     json += "\"name\":\"" + name + "\",";
     json += "\"status\":" + String(status ? "true" : "false") + ",";
     json += "\"threshold_min\":" + String(threshold_min) + ",";
@@ -188,7 +178,6 @@ void Control::updateFromApi(const StaticJsonDocument<512> &doc)
         doc.containsKey("threshold_min") && doc.containsKey("threshold_max") &&
         doc.containsKey("mode") && doc.containsKey("_id") && doc.containsKey("schedules"))
     {
-        setControlId(doc["_id"].as<String>());
         setStatus(doc["status"].as<bool>());
         setThresholdMin(doc["threshold_min"].as<int>());
         setThresholdMax(doc["threshold_max"].as<int>());

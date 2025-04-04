@@ -6,5 +6,7 @@ extern WiFiUDP ntpUDP;  // NTP UDP instance
 extern NTPClient timeClient;  // NTP client instance
 // Initialize NTP client
 void initTime();
-String getCurrentTime();
-String getCurrentWeekDay();
+void updateTime();
+String getDateTime();
+String getTime();
+String getWeekDay();
