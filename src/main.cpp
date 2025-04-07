@@ -1,4 +1,3 @@
-#include "config.h"
 #include "wifi_manager.h"
 #include "model/sensors.h"
 #include "model/controls.h"
@@ -8,11 +7,17 @@
 #include <vector>
 const unsigned long measurementInterval = 20000; 
 unsigned long lastMeasurementTime = measurementInterval;
-
-
-// String rainCoverName = "rain";
+String deviceID = "";
 std::vector<Sensor> sensors;
 std::vector<Control> controls;
+
+String getDeviceID(){
+    uint64_t chipId = ESP.getEfuseMac();
+    char deviceID[17];
+    sprintf(deviceID, "%llX", chipId);
+    return String(deviceID);
+}
+
 
 void setup() {  
     Serial.begin(9600);

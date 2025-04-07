@@ -2,7 +2,11 @@
 
 
 DHT dht(DHTPIN, DHTTYPE);
-
+String streamLabel = "stream";
+String humidityLabel = "humidity";
+String moistureLabel = "moisture";
+String luminosityLabel = "luminosity";
+String temperatureLabel = "temperature";
 void initSensors() {
     dht.begin();
     pinMode(moisturePin, INPUT);

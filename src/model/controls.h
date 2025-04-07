@@ -1,20 +1,16 @@
 #ifndef CONTROL_H
 #define CONTROL_H
 
-#include "config.h"
+#include <vector>
+#include <ArduinoJson.h>
 
 #define pumpPin 16
 #define fanPin 19
 #define lightPin 21
 
-#define ledRPin 12
-#define ledGPin 27
-#define ledBPin 14
-
-
 
 void initControls();
-void controlLed(int red, int green, int blue);
+
 
 class Control {
 private:

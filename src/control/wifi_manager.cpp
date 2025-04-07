@@ -15,7 +15,4 @@ void connectWiFi() {
     Serial.println("Connected to WiFi!");
     WiFi.setAutoReconnect(true);
     WiFi.persistent(true);
-
-    // Khởi động server
-    server.begin();
 }

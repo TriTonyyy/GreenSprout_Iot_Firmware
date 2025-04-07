@@ -1,7 +1,6 @@
 #ifndef SENSORS_H
 #define SENSORS_H
 
-#include "config.h"
 #include <DHT.h>
 
 // Chân cảm biến
@@ -10,10 +9,13 @@
 #define moisturePin 36
 #define streamPin 35
 #define luminosityPin 34
+DHT dht;
 
-
-// DHT sensor
-extern DHT dht;
+extern String streamLabel;
+extern String humidityLabel;
+extern String moistureLabel;
+extern String luminosityLabel;
+extern String temperatureLabel;
 
 
 void initSensors();
@@ -23,6 +25,7 @@ float readLuminosity();
 float readStream();
 float readTemperature();
 float readHumidity();
+
 class Sensor{
     private:
         String type;

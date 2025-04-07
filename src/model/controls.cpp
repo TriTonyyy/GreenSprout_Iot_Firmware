@@ -1,27 +1,16 @@
 #include "controls.h"
-#include "server_api.h"
-#include <vector>
-#include <ArduinoJson.h>
+#include "control/server_api.h"
 void initControls()
 {
     pinMode(pumpPin, OUTPUT);
     pinMode(fanPin, OUTPUT);
     pinMode(lightPin, OUTPUT);
 
-    pinMode(ledBPin, OUTPUT);
-    pinMode(ledGPin, OUTPUT);
-    pinMode(ledRPin, OUTPUT);
-
     digitalWrite(pumpPin, HIGH);
     digitalWrite(fanPin, HIGH);
     digitalWrite(lightPin, HIGH);
 }
-void controlLed(int red, int green, int blue)
-{
-    analogWrite(ledRPin, red);
-    analogWrite(ledGPin, green);
-    analogWrite(ledBPin, blue);
-}
+
 
 Control::Control(String name, bool status, int threshold_min, int threshold_max, String mode, int pin)
 {
@@ -44,6 +33,7 @@ String Control::getName() const
 {
     return name;
 }
+
 std::vector<String> Control::getSchedulesID() const
 {
     return schedules_id;
@@ -90,10 +80,12 @@ void Control::setMode(String newMode)
 {
     mode = newMode;
 }
+
 void Control::setSchedulesID(std::vector<String> ids)
 {
     schedules_id = ids;
 }
+
 // Control methods
 void Control::turn(bool isOn)
 {
@@ -101,12 +93,12 @@ void Control::turn(bool isOn)
     is_running = isOn;
     if(isOn){
         // Serial.println("Turning "+getName()+" on...");
-        controlLed(0,255,0);
+        // controlLed(0,255,0);
     }else{
         // Serial.println("Turning "+getName()+" off...");
         // controlLed(255,0,0);
         // delay(1000);
-        controlLed(0,0,0);
+        // controlLed(0,0,0);
     }
     // sendControl(name,status,threshold_min,threshold_max,mode,updateControlPath+control_id,false);
 

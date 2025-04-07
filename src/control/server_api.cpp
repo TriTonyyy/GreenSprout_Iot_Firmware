@@ -1,5 +1,24 @@
 #include "server_api.h"
-#include "time_manager.h"
+
+
+String serverAddress = "https://capstone-project-iot-1.onrender.com/api/";
+// String serverAddress = "http://192.168.1.248:8000/api/";
+
+String createControlPath = "control/createControl"; 
+String getControlPath = "control/detailControlBy/"; 
+String updateControlPath = "control/updateControlBy/"; 
+
+String createSensorPath = "sensor/createSensor"; 
+String getSensorPath = "sensor/detailSensorBy/"; 
+String updateSensorPath = "sensor/updateSensorBy/"; 
+
+String createDevicePath = "device/createDevice"; 
+String getDevicePath = "device/detailDeviceBy/"; 
+String updateDevicePath = "device/updateDeviceBy/"; 
+
+String getSchedulePath = "schedule/detailScheduleBy/"; 
+
+
 
 String sendSensor(String type, float value, String apiPath, bool isPost) {
     StaticJsonDocument<128> doc;
@@ -33,8 +52,8 @@ String sendDevice(String deviceID, std::vector<Sensor> sensors, std::vector<Cont
     doc["id_esp"] = deviceID;
     doc["name_area"] = "New Garden";
     doc["img_area"] = "";
-    doc["update_at"] = getDateTime();
-    doc["create_at"] = getDateTime();
+    doc["update_at"] = "";
+    doc["create_at"] = "";
     JsonArray members = doc.createNestedArray("members");
     JsonArray sensorsJS = doc.createNestedArray("sensors");
     for (Sensor sensor : sensors) {
