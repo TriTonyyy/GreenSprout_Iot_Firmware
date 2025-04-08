@@ -1,5 +1,7 @@
 #include "display.h"
-void initLed()
+#include <Arduino.h>
+
+void initDisplay()
 {
 
     pinMode(ledBPin, OUTPUT);

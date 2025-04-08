@@ -1,11 +1,12 @@
 #include "wifi_manager.h"
+#include <WiFiManager.h>
 #include "esp_wifi.h"
-
+#include <Arduino.h>
 WiFiManager wifiManager;
 
 void connectWiFi() {
-    esp_wifi_set_max_tx_power(84);
-    WiFi.setSleep(false);
+    // esp_wifi_set_max_tx_power(84);
+    // WiFi.setSleep(false);
     WiFi.mode(WIFI_STA);
     if (!wifiManager.autoConnect("ESP32_Setup")) {
         Serial.println("Failed to connect. Restarting...");

@@ -1,53 +1,48 @@
 #include "server_api.h"
+#include "control/manager/pref_manager.h"
+#include "control/manager/sensor_manager.h"
+#include "Arduino.h"
+#include "control/manager/device_manager.h"
+// String serverAddress = "https://capstone-project-iot-1.onrender.com/api/";
+String serverAddress = "http://192.168.1.224:8000/api/";
 
-
-String serverAddress = "https://capstone-project-iot-1.onrender.com/api/";
-// String serverAddress = "http://192.168.1.248:8000/api/";
-
-String createControlPath = "control/createControl"; 
-String getControlPath = "control/detailControlBy/"; 
 String updateControlPath = "control/updateControlBy/"; 
 
-String createSensorPath = "sensor/createSensor"; 
-String getSensorPath = "sensor/detailSensorBy/"; 
 String updateSensorPath = "sensor/updateSensorBy/"; 
+
+String getSchedulePath = "schedule/detailScheduleBy/"; 
 
 String createDevicePath = "device/createDevice"; 
 String getDevicePath = "device/detailDeviceBy/"; 
 String updateDevicePath = "device/updateDeviceBy/"; 
 
-String getSchedulePath = "schedule/detailScheduleBy/"; 
+const unsigned long measurementInterval = 20000; 
+unsigned long lastMeasurementTime = measurementInterval;
 
 
-
-String sendSensor(String type, float value, String apiPath, bool isPost) {
+void sendSensor(String type, float value, String id, bool isPost) {
     StaticJsonDocument<128> doc;
     doc["type"] = type;
     doc["value"] = value;
 
     String payload;
     serializeJson(doc, payload);
-    String id = sendData(payload,apiPath,isPost);
-    // Serial.println("Sensor "+type+" id: "+id);
-    return id;
+    sendData(payload,updateSensorPath+deviceID+"/"+id,isPost);
 }
-String sendControl(String name, bool status, float min, float max, String mode, String apiPath, bool isPost) {
+void sendControl(Control* control, String id, bool isPost) {
     StaticJsonDocument<200> doc;
-    doc["name"] = name;
-    doc["status"] = status;
-    doc["threshold_min"] = min;
-    doc["threshold_max"] = max;
-    doc["mode"] = mode;
+    doc["name"] = control->getName();
+    doc["status"] = control->getStatus();
+    doc["threshold_min"] = control->getThresholdMin();
+    doc["threshold_max"] = control->getThresholdMax();
+    doc["mode"] = control->getMode();
     JsonArray schedules = doc.createNestedArray("schedules");
     // Convert JSON object to a String
     String payload;
     serializeJson(doc, payload);
-    String id = sendData(payload,apiPath,isPost);
-    // Serial.println("Control "+name+" id: "+id);
-
-    return id;
+    sendData(payload,updateControlPath+deviceID+"/"+id,isPost);
 }
-String sendDevice(String deviceID, std::vector<Sensor> sensors, std::vector<Control> controls, String apiPath, bool isPost) {
+void sendDevice(std::vector<Sensor*> sensors, std::vector<Control*> controls, bool isPost) {
     StaticJsonDocument<256> doc;
     doc["id_esp"] = deviceID;
     doc["name_area"] = "New Garden";
@@ -56,36 +51,34 @@ String sendDevice(String deviceID, std::vector<Sensor> sensors, std::vector<Cont
     doc["create_at"] = "";
     JsonArray members = doc.createNestedArray("members");
     JsonArray sensorsJS = doc.createNestedArray("sensors");
-    for (Sensor sensor : sensors) {
+    for (Sensor* sensor : sensors) {
         JsonObject sensorJs = sensorsJS.createNestedObject();
-        sensorJs["type"] = sensor.getType();
-        sensorJs["value"] = sensor.getValue();
+        sensorJs["type"] = sensor->getType();
+        sensorJs["value"] = sensor->getValue();
     }
     JsonArray controlsJS = doc.createNestedArray("controls");
-    for (Control control : controls) {
+    for (Control* control : controls) {
         JsonObject controlJs = controlsJS.createNestedObject();
-        controlJs["name"] = control.getName();
-        controlJs["status"] = control.getStatus();
-        controlJs["threshold_min"] = control.getThresholdMin();
-        controlJs["threshold_max"] = control.getThresholdMax();
-        controlJs["mode"] = control.getMode();
+        controlJs["name"] = control->getName();
+        controlJs["status"] = control->getStatus();
+        controlJs["threshold_min"] = control->getThresholdMin();
+        controlJs["threshold_max"] = control->getThresholdMax();
+        controlJs["mode"] = control->getMode();
         JsonArray schedules = controlJs.createNestedArray("schedules");
     }
     // Chuyển JSON thành chuỗi
     String payload;
     serializeJson(doc, payload);
     Serial.println(payload);
-    String id = sendData(payload,apiPath,isPost);
-    return id;
+    sendData(payload,isPost?createDevicePath:updateDevicePath+deviceID,isPost);
 }
 
-String sendData(String payload, String apiPath, bool isPost) {
-    String id = "";  // Default empty ID
+void sendData(String payload, String apiPath, bool isPost) {
     HTTPClient http;
     http.begin(serverAddress + apiPath);
     http.addHeader("Content-Type", "application/json");
 
-    // Serial.println("Sending request to: " + serverAddress + apiPath);
+    Serial.println("Sending request to: " + serverAddress + apiPath);
     
     // Send HTTP request (POST or PUT)
     int httpResponseCode = isPost ? http.POST(payload) : http.PUT(payload);
@@ -102,17 +95,12 @@ String sendData(String payload, String apiPath, bool isPost) {
         if (error) {
             Serial.print("Failed to parse JSON: ");
             Serial.println(error.f_str());
-        } else if (doc.containsKey("data") && doc["data"].containsKey("_id")) {
-            id = doc["data"]["_id"].as<String>(); // Extract _id
-        } else {
-            Serial.println("Response does not contain expected 'data' or '_id'");
         }
     } else {
         Serial.printf("Error in sending data: %s\n", http.errorToString(httpResponseCode).c_str());
     }
 
     http.end();
-    return id;
 }
 
 StaticJsonDocument<512> getData(String apiPath) {
@@ -142,4 +130,36 @@ StaticJsonDocument<512> getData(String apiPath) {
 
     http.end();
     return doc;  // Return the full response as a string
+}
+
+
+void updateSensorToServer(std::vector<Sensor*> sensors){
+    // Calculate and send average data to server every hour
+    unsigned long currentMillis = millis();
+    if (currentMillis - lastMeasurementTime >= measurementInterval) {  // 1 hour (3600000 ms)
+        lastMeasurementTime = currentMillis;
+        
+        // Name key
+        String moistureKey = moistureLabel+"_c";
+        String streamKey = streamLabel+"_c";
+        String luminosityKey = luminosityLabel+"_c";
+        String temperatureKey = temperatureLabel+"_c";
+        String humidityKey = humidityLabel+"_c";
+
+        // Calculate the averages for each sensor
+        float avgMoisture = calAvg(moistureLabel);
+        float avgStream = calAvg(streamLabel);
+        float avgLuminosity = calAvg(luminosityLabel);
+        float avgTemperature = calAvg(temperatureLabel);
+        float avgHumidity = calAvg(humidityLabel);
+
+        // Send average data to the server
+        sendSensor(streamLabel, avgStream,deviceID+"/"+sensors[0]->getId(),false);
+        sendSensor(humidityLabel, avgHumidity,deviceID+"/"+sensors[1]->getId(),false);
+        sendSensor(moistureLabel, avgMoisture,deviceID+"/"+sensors[2]->getId(),false);
+        sendSensor(luminosityLabel, avgLuminosity,deviceID+"/"+sensors[3]->getId(),false);
+        sendSensor(temperatureLabel, avgTemperature,deviceID+"/"+sensors[4]->getId(),false);
+        
+        resetSensorsData();
+    }
 }

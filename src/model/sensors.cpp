@@ -18,9 +18,6 @@ void initSensors() {
 float readMoisture() {
     return map(analogRead(moisturePin), 4095, 0, 0, 100);
 }
-// float readRainSensor() {
-//     return map(analogRead(rainPin), 4095, 0, 0, 100);
-// }
 
 float readLuminosity() {
     return map(analogRead(luminosityPin), 4095, 0, 0, 100);
@@ -35,11 +32,20 @@ float readTemperature() {
 float readHumidity() {
     return dht.readHumidity();
 }
-
+Sensor::Sensor(){
+    this->id = "";
+    this->type = "";
+    this->value = 0;
+} 
 Sensor::Sensor(String type, long value){
+    this->id = "";
     this->type = type;
     this->value = value;
 }   
+String Sensor::getId() const{
+    return id;
+}
+
 String Sensor::getType() const{
     return type;
 }
@@ -49,14 +55,18 @@ long Sensor::getValue() const{
 void Sensor::setType(String newType) {
     type = newType;
 }
+void Sensor::setId(String newId) {
+    id = newId;
+}
 void Sensor::setValue(long newValue) {
     value = newValue;
 }
-void Sensor::updateFromJson(const StaticJsonDocument<512> &doc)
+void Sensor::updateFromJson(const StaticJsonDocument<512>& doc)
 {
-    if (doc.containsKey("type") && doc.containsKey("value"))
+    if (doc.containsKey("_id") && doc.containsKey("type") && doc.containsKey("value"))
     {
-        setStatus(doc["type"].as<String>());
-        setThresholdMin(doc["value"].as<long>());
+        setId(doc["_id"].as<String>());
+        setType(doc["type"].as<String>());
+        setValue(doc["value"].as<long>());
     }
 }

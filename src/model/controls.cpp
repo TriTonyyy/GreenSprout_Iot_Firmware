@@ -1,5 +1,7 @@
 #include "controls.h"
-#include "control/server_api.h"
+#include "control/service/server_api.h"
+#include "view/display.h"
+#include "control/manager/device_manager.h"
 void initControls()
 {
     pinMode(pumpPin, OUTPUT);
@@ -10,10 +12,22 @@ void initControls()
     digitalWrite(fanPin, HIGH);
     digitalWrite(lightPin, HIGH);
 }
-
+Control::Control()
+{
+    this->id = "";
+    this->name = "";
+    this->pin = 0;
+    this->status = false;
+    this->threshold_min = 0;
+    this->threshold_max = 100;
+    this->mode = "manual";
+    this->is_running = false;
+    this->schedules_id = {};
+}
 
 Control::Control(String name, bool status, int threshold_min, int threshold_max, String mode, int pin)
 {
+    this->id = "";
     this->name = name;
     this->pin = pin;
     this->status = status;
@@ -32,6 +46,10 @@ Control::Control(String name, bool status, int threshold_min, int threshold_max,
 String Control::getName() const
 {
     return name;
+}
+String Control::getId() const
+{
+    return id;
 }
 
 std::vector<String> Control::getSchedulesID() const
@@ -80,7 +98,10 @@ void Control::setMode(String newMode)
 {
     mode = newMode;
 }
-
+void Control::setId(String newId)
+{
+    id = newId;
+}
 void Control::setSchedulesID(std::vector<String> ids)
 {
     schedules_id = ids;
@@ -92,15 +113,13 @@ void Control::turn(bool isOn)
     setStatus(isOn);
     is_running = isOn;
     if(isOn){
-        // Serial.println("Turning "+getName()+" on...");
-        // controlLed(0,255,0);
+        setColor(0,255,0);
     }else{
-        // Serial.println("Turning "+getName()+" off...");
-        // controlLed(255,0,0);
-        // delay(1000);
-        // controlLed(0,0,0);
+        setColor(255,0,0);
+        delay(1000);
+        setColor(0,0,0);
     }
-    // sendControl(name,status,threshold_min,threshold_max,mode,updateControlPath+control_id,false);
+    sendControl(this,id,false);
 
 }
 
@@ -111,18 +130,6 @@ void Control::toggle()
     Serial.println(status ? "Turning "+name+" on..." : "Turning "+name+" off...");
 }
 
-// JSON serialization
-String Control::toJson() const
-{
-    String json = "{";
-    json += "\"name\":\"" + name + "\",";
-    json += "\"status\":" + String(status ? "true" : "false") + ",";
-    json += "\"threshold_min\":" + String(threshold_min) + ",";
-    json += "\"threshold_max\":" + String(threshold_max) + ",";
-    json += "\"mode\":\"" + mode + "\"";
-    json += "}";
-    return json;
-}
 
 // Update method for threshold-based control
 void Control::update(float value)
@@ -158,13 +165,11 @@ void Control::update(float value)
                 turn(false);
             }
         }
-        // Note: If threshold_min <= value < threshold_max, the pump continues running
-        // until value >= threshold_max, ensuring it runs until max is reached
     }
 }
 
 // Update from API data
-void Control::updateFromApi(const StaticJsonDocument<512> &doc)
+void Control::updateFromJson(const StaticJsonDocument<512> &doc)
 {
     if (doc.containsKey("name") && doc.containsKey("status") &&
         doc.containsKey("threshold_min") && doc.containsKey("threshold_max") &&
@@ -174,7 +179,7 @@ void Control::updateFromApi(const StaticJsonDocument<512> &doc)
         setThresholdMin(doc["threshold_min"].as<int>());
         setThresholdMax(doc["threshold_max"].as<int>());
         setMode(doc["mode"].as<String>());
-        // Serial.println(doc["schedules"].as<String>().as<JsonArray>());
+        setId(doc["_id"].as<String>());
         std::vector<String> schedules_id;
         Serial.println(doc["schedules"].as<String>());
         for (size_t i = 0; i < doc["schedules"].size(); i++)

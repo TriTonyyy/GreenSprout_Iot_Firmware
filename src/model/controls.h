@@ -14,6 +14,7 @@ void initControls();
 
 class Control {
 private:
+  String id;
   String name;           // Device name (e.g., "pump")
   bool status;           // Device state (true = on, false = off)
   int threshold_min;     // Minimum threshold
@@ -25,9 +26,12 @@ private:
 
 public:
   // Constructor
+  Control();
+
   Control(String name, bool status, int threshold_min, int threshold_max, String mode, int pin);
   // Getters
   String getName() const;
+  String getId() const;
   std::vector<String> getSchedulesID() const;
   bool getStatus() const;
   int getThresholdMin() const;
@@ -40,17 +44,15 @@ public:
   void setThresholdMin(int min);
   void setThresholdMax(int max);
   void setMode(String newMode);
+  void setId(String newId);
 
   // Control methods
   void toggle();
   void turn(bool isOn);
-  // JSON serialization
-  String toJson() const;
-
   // Update method for threshold-based control
   void update(float value);
 
   // Update from API data
-  void updateFromApi(const StaticJsonDocument<512>& doc);
+  void updateFromJson(const StaticJsonDocument<512>& doc);
 };
 #endif

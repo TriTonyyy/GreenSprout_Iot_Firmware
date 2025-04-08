@@ -1,5 +1,5 @@
-#ifndef STORE_DATA_H
-#define STORE_DATA_H
+#ifndef PREF_MANAGER_H
+#define PREF_MANAGER_H
 #include <Preferences.h>
 
 // Declare global variables
