@@ -1,7 +1,8 @@
-#include "controls.h"
+#include "model/controls.h"
 #include "control/service/server_api.h"
 #include "view/display.h"
 #include "control/manager/device_manager.h"
+#include "control/service/time_manager.h"
 void initControls()
 {
     pinMode(pumpPin, OUTPUT);
@@ -119,7 +120,9 @@ void Control::turn(bool isOn)
         delay(1000);
         setColor(0,0,0);
     }
-    sendControl(this,id,false);
+    std::vector<Control*> controls;
+    controls.push_back(this);
+    sendControls(controls);
 
 }
 
@@ -144,8 +147,26 @@ void Control::update(float value)
     }  
     else if (mode == "schedule")
     {
-        // getData(getSchedulePath)
-        // Placeholder for schedule-based control (implement as needed)
+        StaticJsonDocument<512> schedules =  getData(getSchedulePath+deviceID+"/"+name)["data"];
+        String currentDay = getDay();
+        String time = getTime();
+        for (size_t i = 0; i < schedules.size(); i++)
+        {
+            if(schedules[i]["status"]){
+                bool correctDay = false;
+                for (size_t j = 0; j < schedules[i]["repeat"].size(); j++)
+                {
+                    if(currentDay == schedules[i]["repeat"][j]){
+                        correctDay = true;
+                        break;
+                    }
+                }
+                if(correctDay){
+                    schedules[i]["startTime"]
+                }
+
+            }
+        }
     }
     else if (mode == "threshold")
     {

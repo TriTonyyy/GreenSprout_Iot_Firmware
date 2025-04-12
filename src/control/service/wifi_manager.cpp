@@ -5,6 +5,7 @@
 WiFiManager wifiManager;
 
 void connectWiFi() {
+    Serial.println(WiFi.RSSI()+" dBm");
     // esp_wifi_set_max_tx_power(84);
     // WiFi.setSleep(false);
     WiFi.mode(WIFI_STA);
@@ -16,4 +17,5 @@ void connectWiFi() {
     Serial.println("Connected to WiFi!");
     WiFi.setAutoReconnect(true);
     WiFi.persistent(true);
+    Serial.println(WiFi.RSSI()+" dBm");
 }

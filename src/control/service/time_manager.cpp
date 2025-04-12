@@ -36,8 +36,20 @@ String getTime() {
     String timeStr = String(hour()) + ":" + String(minute()) + ":" + String(second());
     return timeStr;
 }
+String convert24to12() {
+    // Get epoch time from the timeClient
+    unsigned long epochTime = timeClient.getEpochTime();
+    String timeStr = String(hour()) + ":" + String(minute()) + ":" + String(second());
+    return timeStr;
+}
+String getTime() {
+    // Get epoch time from the timeClient
+    unsigned long epochTime = timeClient.getEpochTime();
+    String timeStr = String(hour()) + ":" + String(minute()) + ":" + String(second());
+    return timeStr;
+}
 // Function to get the current formatted time as a string
-String getWeekDay() {
+String getDay() {
     unsigned long epochTime = timeClient.getEpochTime();
     // Get day of the week
     String weekDay;

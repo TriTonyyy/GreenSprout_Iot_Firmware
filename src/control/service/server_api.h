@@ -19,8 +19,8 @@ extern String updateDevicePath;
 
 extern String getSchedulePath; 
 
-void sendSensor(String type, float value, String id, bool isPost);
-void sendControl(Control* control, String id, bool isPost);
+void sendSensors(std::vector<Sensor*> sensors);
+void sendControls(std::vector<Control*> controls);
 void sendDevice(std::vector<Sensor*> sensors, std::vector<Control*> controls, bool isPost);
 void sendData(String payload, String apiPath, bool isPost);
 StaticJsonDocument<512> getData(String apiPath);

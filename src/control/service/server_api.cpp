@@ -3,44 +3,54 @@
 #include "control/manager/sensor_manager.h"
 #include "Arduino.h"
 #include "control/manager/device_manager.h"
-// String serverAddress = "https://capstone-project-iot-1.onrender.com/api/";
-String serverAddress = "http://192.168.1.224:8000/api/";
+String serverAddress = "https://capstone-project-iot-1.onrender.com/api/";
+// String serverAddress = "http://192.168.1.224:8000/api/";
 
-String updateControlPath = "control/updateControlBy/"; 
+String updateControlPath = "control/updateControls/"; 
 
-String updateSensorPath = "sensor/updateSensorBy/"; 
+String updateSensorPath = "sensor/updateSensors/"; 
 
-String getSchedulePath = "schedule/detailScheduleBy/"; 
+String getSchedulePath = "schedule/scheduleBy/"; 
 
 String createDevicePath = "device/createDevice"; 
 String getDevicePath = "device/detailDeviceBy/"; 
-String updateDevicePath = "device/updateDeviceBy/"; 
+String updateDevicePath = "device/updateDevice/"; 
 
 const unsigned long measurementInterval = 20000; 
 unsigned long lastMeasurementTime = measurementInterval;
 
 
-void sendSensor(String type, float value, String id, bool isPost) {
-    StaticJsonDocument<128> doc;
-    doc["type"] = type;
-    doc["value"] = value;
-
+void sendSensors(std::vector<Sensor*> sensors) {
+    StaticJsonDocument<518> doc;
+    JsonArray sensorsJs = doc.createNestedArray("sensors");
+    for (size_t i = 0; i < sensors.size(); i++)
+    {
+        JsonObject sensorJs = sensorsJs.createNestedObject();
+        sensorJs["sensorId"] = sensors[i]->getId();
+        sensorJs["type"] = sensors[i]->getType();
+        sensorJs["value"] = sensors[i]->getValue();
+    }
     String payload;
     serializeJson(doc, payload);
-    sendData(payload,updateSensorPath+deviceID+"/"+id,isPost);
+    sendData(payload,updateSensorPath+deviceID,false);
 }
-void sendControl(Control* control, String id, bool isPost) {
+void sendControls(std::vector<Control*> controls) {
     StaticJsonDocument<200> doc;
-    doc["name"] = control->getName();
-    doc["status"] = control->getStatus();
-    doc["threshold_min"] = control->getThresholdMin();
-    doc["threshold_max"] = control->getThresholdMax();
-    doc["mode"] = control->getMode();
-    JsonArray schedules = doc.createNestedArray("schedules");
+    JsonArray controlsJs = doc.createNestedArray("controls");
+    for (size_t i = 0; i < controls.size(); i++)
+    {
+        JsonObject controlJs = controlsJs.createNestedObject();
+        controlJs["name"] = controls[i]->getName();
+        controlJs["status"] = controls[i]->getStatus();
+        controlJs["threshold_min"] = controls[i]->getThresholdMin();
+        controlJs["threshold_max"] = controls[i]->getThresholdMax();
+        controlJs["mode"] = controls[i]->getMode();
+    }
+    
     // Convert JSON object to a String
     String payload;
     serializeJson(doc, payload);
-    sendData(payload,updateControlPath+deviceID+"/"+id,isPost);
+    sendData(payload,updateControlPath+deviceID,false);
 }
 void sendDevice(std::vector<Sensor*> sensors, std::vector<Control*> controls, bool isPost) {
     StaticJsonDocument<256> doc;
@@ -138,14 +148,6 @@ void updateSensorToServer(std::vector<Sensor*> sensors){
     unsigned long currentMillis = millis();
     if (currentMillis - lastMeasurementTime >= measurementInterval) {  // 1 hour (3600000 ms)
         lastMeasurementTime = currentMillis;
-        
-        // Name key
-        String moistureKey = moistureLabel+"_c";
-        String streamKey = streamLabel+"_c";
-        String luminosityKey = luminosityLabel+"_c";
-        String temperatureKey = temperatureLabel+"_c";
-        String humidityKey = humidityLabel+"_c";
-
         // Calculate the averages for each sensor
         float avgMoisture = calAvg(moistureLabel);
         float avgStream = calAvg(streamLabel);
@@ -153,12 +155,14 @@ void updateSensorToServer(std::vector<Sensor*> sensors){
         float avgTemperature = calAvg(temperatureLabel);
         float avgHumidity = calAvg(humidityLabel);
 
+        sensors[0]->setValue(avgStream);
+        sensors[1]->setValue(avgHumidity);
+        sensors[2]->setValue(avgMoisture);
+        sensors[3]->setValue(avgLuminosity);
+        sensors[4]->setValue(avgTemperature);
+
         // Send average data to the server
-        sendSensor(streamLabel, avgStream,deviceID+"/"+sensors[0]->getId(),false);
-        sendSensor(humidityLabel, avgHumidity,deviceID+"/"+sensors[1]->getId(),false);
-        sendSensor(moistureLabel, avgMoisture,deviceID+"/"+sensors[2]->getId(),false);
-        sendSensor(luminosityLabel, avgLuminosity,deviceID+"/"+sensors[3]->getId(),false);
-        sendSensor(temperatureLabel, avgTemperature,deviceID+"/"+sensors[4]->getId(),false);
+        sendSensors(sensors);
         
         resetSensorsData();
     }

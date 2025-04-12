@@ -21,15 +21,19 @@ void appSetup() {
     initControls();
     initPreferences();
     initDisplay();
-    deviceID = "100"; 
-    // deviceID = getDeviceID();
+    pinMode(buttonPin,INPUT_PULLUP);
+    // deviceID = "10"; 
+    deviceID = getDeviceID();
     loadOrCreateDeviceConfig(sensors,controls);
 }
 
 void appLoop() {
-    updateTime();
-    updateControlsBehave(controls,sensors);
-    receiveControlsData(deviceID, controls);
-    collectSensorsData(sensors);
-    updateSensorToServer(sensors);
+    // Serial.println(map(analogRead(rotatePin),0,4095,0,100));
+    // Serial.println(digitalRead(buttonPin));
+    // Serial.println(analogRead(streamPin));
+    // updateTime();
+    // updateControlsBehave(controls,sensors);
+    // receiveControlsData(deviceID, controls);
+    // collectSensorsData(sensors);
+    // updateSensorToServer(sensors);
 }

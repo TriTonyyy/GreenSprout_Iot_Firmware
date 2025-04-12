@@ -7,12 +7,20 @@ String humidityLabel = "humidity";
 String moistureLabel = "moisture";
 String luminosityLabel = "luminosity";
 String temperatureLabel = "temperature";
+volatile int pulseCount = 0;
+unsigned long lastTime = 0;
+float streamSpeed = 0.0;
+void IRAM_ATTR countPulse() {
+    pulseCount++;
+  }
 void initSensors() {
     dht.begin();
     pinMode(moisturePin, INPUT);
     // pinMode(rainPin, INPUT);
     pinMode(luminosityPin, INPUT);
-    pinMode(streamPin, INPUT);
+    pinMode(streamPin, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(streamPin), countPulse, RISING);
+
 }
 
 float readMoisture() {
@@ -23,7 +31,21 @@ float readLuminosity() {
     return map(analogRead(luminosityPin), 4095, 0, 0, 100);
 }
 float readStream() {
-    return map(analogRead(streamPin), 4095, 0, 0, 100);
+    unsigned long currentTime = millis();
+    if (currentTime - lastTime >= 1000) { // mỗi giây
+        detachInterrupt(streamPin);
+
+        // Chuyển đổi xung thành L/min
+        // Dựa theo thông số có thể là: 5.5 hoặc 7.5 pulses/second = 1 L/min
+        streamSpeed = pulseCount / 5.5;
+
+        pulseCount = 0;
+        lastTime = currentTime;
+
+        attachInterrupt(digitalPinToInterrupt(streamPin), countPulse, RISING);
+        return streamSpeed;
+    }
+    return 0;
 }
 float readTemperature() {
     return dht.readTemperature();

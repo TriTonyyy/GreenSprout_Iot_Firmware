@@ -7,5 +7,5 @@ void initTime();
 void updateTime();
 String getDateTime();
 String getTime();
-String getWeekDay();
+String getDay();
 #endif
