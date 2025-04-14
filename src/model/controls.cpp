@@ -139,52 +139,88 @@ void Control::update(float value)
 {
     if (mode == "manual")
     {
-        if(status && !is_running){
+        if (status && !is_running)
             turn(true);
-        }else if(!status && is_running){
+        else if (!status && is_running)
             turn(false);
-        }
     }  
     else if (mode == "schedule")
     {
-        StaticJsonDocument<512> schedules =  getData(getSchedulePath+deviceID+"/"+name)["data"];
+        StaticJsonDocument<512> schedules = getData(getSchedulePath + deviceID + "/" + name)["data"];
         String currentDay = getDay();
-        String time = getTime();
+        String currentTime = getTime();  // "HH:MM:SS"
+        
+        int curH, curM, curS;
+        sscanf(currentTime.c_str(), "%d:%d:%d", &curH, &curM, &curS);
+        int currentSeconds = curH * 3600 + curM * 60 + curS;
+
         for (size_t i = 0; i < schedules.size(); i++)
         {
-            if(schedules[i]["status"]){
-                bool correctDay = false;
-                for (size_t j = 0; j < schedules[i]["repeat"].size(); j++)
+            if (schedules[i]["status"])
+            {
+                String startTime = convertTo24Hour(schedules[i]["startTime"]);
+                int duration = schedules[i]["duration"].as<int>();
+
+                int startH, startM, startS;
+                sscanf(startTime.c_str(), "%d:%d:%d", &startH, &startM, &startS);
+                int startSeconds = startH * 3600 + startM * 60 + startS;
+                int endSeconds = startSeconds + duration;
+                
+                bool isPassDay = false;
+                if (endSeconds >= 86400)  // next-day overflow
                 {
-                    if(currentDay == schedules[i]["repeat"][j]){
-                        correctDay = true;
-                        break;
-                    }
-                }
-                if(correctDay){
-                    schedules[i]["startTime"]
+                    endSeconds -= 86400;
+                    isPassDay = true;
                 }
 
+                JsonArray repeatDays = schedules[i]["repeat"].as<JsonArray>();
+
+                for (size_t j = 0; j < repeatDays.size(); j++)
+                {
+                    String day = repeatDays[j];
+                    bool matchToday = (!isPassDay && day == currentDay);
+                    bool matchPrevDay = (isPassDay && day == getPrevDay());
+
+                    if (matchToday || matchPrevDay)
+                    {
+                        bool inTimeRange = false;
+
+                        if (!isPassDay)
+                        {
+                            inTimeRange = (currentSeconds >= startSeconds && currentSeconds < startSeconds + duration);
+                        }
+                        else
+                        {
+                            // Split over midnight: (e.g., 23:50 to 00:10)
+                            inTimeRange = (currentSeconds >= startSeconds || currentSeconds < endSeconds);
+                        }
+
+                        if (inTimeRange)
+                        {
+                            if (!is_running)
+                                turn(true);
+                        }
+                        else
+                        {
+                            if (is_running)
+                                turn(false);
+                        }
+
+                        break;  // no need to check other days
+                    }
+                }
             }
         }
     }
     else if (mode == "threshold")
     {
-        if (value < threshold_min)
+        if (value < threshold_min && !is_running)
         {
-            // Start the pump if value is below the minimum threshold
-            if (!is_running)
-            {
-                turn(true);
-            }
+            turn(true);
         }
-        else if (value >= threshold_max)
+        else if (value >= threshold_max && is_running)
         {
-            // Stop the pump only when the value reaches or exceeds the maximum threshold
-            if (is_running)
-            {
-                turn(false);
-            }
+            turn(false);
         }
     }
 }

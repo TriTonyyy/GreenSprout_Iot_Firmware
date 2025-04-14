@@ -12,7 +12,10 @@
 #include "view/display.h"
 std::vector<Sensor*> sensors;
 std::vector<Control*> controls;
-
+const int pwmPin = 21; // Nối tới Gate MOSFET
+const int channel = 0;
+const int freq = 5000;
+const int resolution = 8;
 void appSetup() {
     Serial.begin(9600);
     connectWiFi();
@@ -25,15 +28,18 @@ void appSetup() {
     // deviceID = "10"; 
     deviceID = getDeviceID();
     loadOrCreateDeviceConfig(sensors,controls);
+    // ledcSetup(channel, freq, resolution);
+    // ledcAttachPin(pwmPin, channel);
 }
 
 void appLoop() {
     // Serial.println(map(analogRead(rotatePin),0,4095,0,100));
     // Serial.println(digitalRead(buttonPin));
     // Serial.println(analogRead(streamPin));
-    // updateTime();
-    // updateControlsBehave(controls,sensors);
-    // receiveControlsData(deviceID, controls);
-    // collectSensorsData(sensors);
-    // updateSensorToServer(sensors);
+    // ledcWrite(channel, 128);
+    updateTime();
+    updateControlsBehave(controls,sensors);
+    receiveControlsData(deviceID, controls);
+    collectSensorsData(sensors);
+    updateSensorToServer(sensors);
 }

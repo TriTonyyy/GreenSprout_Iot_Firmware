@@ -8,4 +8,6 @@ void updateTime();
 String getDateTime();
 String getTime();
 String getDay();
+String getPrevDay();
+String convertTo24Hour(String time12);
 #endif
