@@ -3,5 +3,5 @@
 
 
 void connectWiFi();
-
+void resetWiFi();
 #endif

@@ -11,6 +11,7 @@ String updateControlPath = "control/updateControls/";
 String updateSensorPath = "sensor/updateSensors/"; 
 
 String getSchedulePath = "schedule/scheduleBy/"; 
+String updateSchedulePath = "schedule/updateSchedule/"; 
 
 String createDevicePath = "device/createDevice"; 
 String getDevicePath = "device/detailDeviceBy/"; 
@@ -22,10 +23,9 @@ unsigned long lastMeasurementTime = measurementInterval;
 
 void sendSensors(std::vector<Sensor*> sensors) {
     StaticJsonDocument<518> doc;
-    JsonArray sensorsJs = doc.createNestedArray("sensors");
     for (size_t i = 0; i < sensors.size(); i++)
     {
-        JsonObject sensorJs = sensorsJs.createNestedObject();
+        JsonObject sensorJs = doc.createNestedObject();
         sensorJs["sensorId"] = sensors[i]->getId();
         sensorJs["type"] = sensors[i]->getType();
         sensorJs["value"] = sensors[i]->getValue();
@@ -36,10 +36,10 @@ void sendSensors(std::vector<Sensor*> sensors) {
 }
 void sendControls(std::vector<Control*> controls) {
     StaticJsonDocument<200> doc;
-    JsonArray controlsJs = doc.createNestedArray("controls");
     for (size_t i = 0; i < controls.size(); i++)
     {
-        JsonObject controlJs = controlsJs.createNestedObject();
+        JsonObject controlJs = doc.createNestedObject();
+        controlJs["controlId"] = controls[i]->getId();
         controlJs["name"] = controls[i]->getName();
         controlJs["status"] = controls[i]->getStatus();
         controlJs["threshold_min"] = controls[i]->getThresholdMin();
@@ -50,7 +50,13 @@ void sendControls(std::vector<Control*> controls) {
     // Convert JSON object to a String
     String payload;
     serializeJson(doc, payload);
+    Serial.println(payload);
     sendData(payload,updateControlPath+deviceID,false);
+}
+void updateSchedule(StaticJsonDocument<512> schedule) {
+    String payload;
+    serializeJson(schedule, payload);
+    sendData(payload,updateSchedulePath+deviceID+"/"+schedule["_id"].as<String>(),true);
 }
 void sendDevice(std::vector<Sensor*> sensors, std::vector<Control*> controls, bool isPost) {
     StaticJsonDocument<256> doc;
@@ -79,7 +85,6 @@ void sendDevice(std::vector<Sensor*> sensors, std::vector<Control*> controls, bo
     // Chuyển JSON thành chuỗi
     String payload;
     serializeJson(doc, payload);
-    Serial.println(payload);
     sendData(payload,isPost?createDevicePath:updateDevicePath+deviceID,isPost);
 }
 
@@ -96,7 +101,6 @@ void sendData(String payload, String apiPath, bool isPost) {
     if (httpResponseCode > 0) {
         Serial.printf("HTTP Response Code: %d\n", httpResponseCode);
         String response = http.getString();
-        Serial.println("Response: " + response);
 
         // Parse JSON response
         StaticJsonDocument<512> doc;

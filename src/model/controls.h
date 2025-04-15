@@ -22,7 +22,7 @@ private:
   String mode;           // Mode ("manual", "schedule", or "threshold")
   uint8_t pin;           // GPIO pin for controlling the device
   bool is_running;      // Track if the pump is currently running
-  std::vector<String> schedules_id;
+  StaticJsonDocument<512> schedules;
 
 public:
   // Constructor
@@ -32,19 +32,20 @@ public:
   // Getters
   String getName() const;
   String getId() const;
-  std::vector<String> getSchedulesID() const;
+  StaticJsonDocument<512> getSchedules() const;
   bool getStatus() const;
   int getThresholdMin() const;
   int getThresholdMax() const;
   String getMode() const;
 
   // Setters
-  void setSchedulesID(std::vector<String> ids);
+  void setSchedules(StaticJsonDocument<512> schedules);
   void setStatus(bool newStatus);
   void setThresholdMin(int min);
   void setThresholdMax(int max);
   void setMode(String newMode);
   void setId(String newId);
+  void setName(String newName);
 
   // Control methods
   void toggle();

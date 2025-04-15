@@ -33,11 +33,11 @@ float readLuminosity() {
 float readStream() {
     unsigned long currentTime = millis();
     if (currentTime - lastTime >= 1000) { // mỗi giây
-        detachInterrupt(streamPin);
+        detachInterrupt(digitalPinToInterrupt(streamPin));
 
         // Chuyển đổi xung thành L/min
         // Dựa theo thông số có thể là: 5.5 hoặc 7.5 pulses/second = 1 L/min
-        streamSpeed = pulseCount / 5.5;
+        streamSpeed = pulseCount / 98.0;
 
         pulseCount = 0;
         lastTime = currentTime;

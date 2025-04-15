@@ -19,3 +19,9 @@ void connectWiFi() {
     WiFi.persistent(true);
     Serial.println(WiFi.RSSI()+" dBm");
 }
+void resetWiFi() {
+    Serial.println("Resetting WiFi settings...");
+    wifiManager.resetSettings(); // Clear stored WiFi credentials
+    delay(1000);
+    ESP.restart(); // Restart the ESP to apply changes
+}

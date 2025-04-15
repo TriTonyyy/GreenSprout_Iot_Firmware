@@ -18,9 +18,11 @@ extern String getDevicePath;
 extern String updateDevicePath; 
 
 extern String getSchedulePath; 
+extern String updateSchedulePath; 
 
 void sendSensors(std::vector<Sensor*> sensors);
 void sendControls(std::vector<Control*> controls);
+void updateSchedule(StaticJsonDocument<512> schedule);
 void sendDevice(std::vector<Sensor*> sensors, std::vector<Control*> controls, bool isPost);
 void sendData(String payload, String apiPath, bool isPost);
 StaticJsonDocument<512> getData(String apiPath);

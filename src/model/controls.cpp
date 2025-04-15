@@ -23,7 +23,7 @@ Control::Control()
     this->threshold_max = 100;
     this->mode = "manual";
     this->is_running = false;
-    this->schedules_id = {};
+    this->schedules;
 }
 
 Control::Control(String name, bool status, int threshold_min, int threshold_max, String mode, int pin)
@@ -36,7 +36,7 @@ Control::Control(String name, bool status, int threshold_min, int threshold_max,
     this->threshold_max = threshold_max;
     this->mode = mode;
     this->is_running = false;
-    this->schedules_id = {};
+    this->schedules;
 
     // Initialize the pin as output
     pinMode(pin, OUTPUT);
@@ -53,9 +53,9 @@ String Control::getId() const
     return id;
 }
 
-std::vector<String> Control::getSchedulesID() const
+StaticJsonDocument<512> Control::getSchedules() const
 {
-    return schedules_id;
+    return schedules;
 }
 
 bool Control::getStatus() const
@@ -85,6 +85,10 @@ void Control::setStatus(bool newStatus)
     digitalWrite(pin, status ? LOW : HIGH); // LOW = on, HIGH = off for relay
 }
 
+void Control::setName(String newName)
+{
+    name = newName;
+}
 void Control::setThresholdMin(int min)
 {
     threshold_min = min;
@@ -103,9 +107,9 @@ void Control::setId(String newId)
 {
     id = newId;
 }
-void Control::setSchedulesID(std::vector<String> ids)
+void Control::setSchedules(StaticJsonDocument<512> newSchedules)
 {
-    schedules_id = ids;
+    schedules = newSchedules;
 }
 
 // Control methods
@@ -137,6 +141,7 @@ void Control::toggle()
 // Update method for threshold-based control
 void Control::update(float value)
 {
+    Serial.println("Mode: "+mode+" Status:"+status+" IsRunning: "+is_running);
     if (mode == "manual")
     {
         if (status && !is_running)
@@ -146,14 +151,12 @@ void Control::update(float value)
     }  
     else if (mode == "schedule")
     {
-        StaticJsonDocument<512> schedules = getData(getSchedulePath + deviceID + "/" + name)["data"];
         String currentDay = getDay();
         String currentTime = getTime();  // "HH:MM:SS"
         
         int curH, curM, curS;
         sscanf(currentTime.c_str(), "%d:%d:%d", &curH, &curM, &curS);
         int currentSeconds = curH * 3600 + curM * 60 + curS;
-
         for (size_t i = 0; i < schedules.size(); i++)
         {
             if (schedules[i]["status"])
@@ -174,20 +177,44 @@ void Control::update(float value)
                 }
 
                 JsonArray repeatDays = schedules[i]["repeat"].as<JsonArray>();
-
-                for (size_t j = 0; j < repeatDays.size(); j++)
-                {
-                    String day = repeatDays[j];
-                    bool matchToday = (!isPassDay && day == currentDay);
-                    bool matchPrevDay = (isPassDay && day == getPrevDay());
-
-                    if (matchToday || matchPrevDay)
+                if(repeatDays.size() > 0){
+                    for (size_t j = 0; j < repeatDays.size(); j++)
                     {
-                        bool inTimeRange = false;
-
-                        if (!isPassDay)
+                        String day = repeatDays[j];
+                        bool matchToday = (!isPassDay && day == currentDay);
+                        bool matchPrevDay = (isPassDay && day == getPrevDay());
+    
+                        if (matchToday || matchPrevDay)
                         {
-                            inTimeRange = (currentSeconds >= startSeconds && currentSeconds < startSeconds + duration);
+                            bool inTimeRange = false;
+    
+                            if (!isPassDay)
+                            {
+                                inTimeRange = (currentSeconds >= startSeconds && currentSeconds < endSeconds);
+                            }
+                            else
+                            {
+                                // Split over midnight: (e.g., 23:50 to 00:10)
+                                inTimeRange = (currentSeconds >= startSeconds || currentSeconds < endSeconds);
+                            }
+    
+                            if (inTimeRange)
+                            {
+                                if (!is_running)
+                                    turn(true);
+                            }
+                            else
+                            {
+                                if (is_running)
+                                    turn(false);
+                            }
+                        }
+                    }
+                }else{
+                    bool inTimeRange = false;
+                    if (!isPassDay)
+                        {
+                            inTimeRange = (currentSeconds >= startSeconds && currentSeconds < endSeconds);
                         }
                         else
                         {
@@ -202,12 +229,13 @@ void Control::update(float value)
                         }
                         else
                         {
-                            if (is_running)
+                            if (is_running){
                                 turn(false);
+                                schedules[i]["status"] = false;
+                                updateSchedule(schedules[i]);
+                            }
+                                
                         }
-
-                        break;  // no need to check other days
-                    }
                 }
             }
         }
@@ -237,13 +265,8 @@ void Control::updateFromJson(const StaticJsonDocument<512> &doc)
         setThresholdMax(doc["threshold_max"].as<int>());
         setMode(doc["mode"].as<String>());
         setId(doc["_id"].as<String>());
-        std::vector<String> schedules_id;
-        Serial.println(doc["schedules"].as<String>());
-        for (size_t i = 0; i < doc["schedules"].size(); i++)
-        {
-            schedules_id.push_back(doc["schedules"][i]["scheduleId"].as<String>());
-        }
-        setSchedulesID(schedules_id);
+        setSchedules(doc["schedules"]);
+        setName(doc["name"]);
     }
 }
 

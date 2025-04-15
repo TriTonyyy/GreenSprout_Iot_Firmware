@@ -3,7 +3,6 @@
 
 void initDisplay()
 {
-
     pinMode(ledBPin, OUTPUT);
     pinMode(ledGPin, OUTPUT);
     pinMode(ledRPin, OUTPUT);

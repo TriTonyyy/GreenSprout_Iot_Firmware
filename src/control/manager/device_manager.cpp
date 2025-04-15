@@ -23,15 +23,18 @@ void loadOrCreateDeviceConfig(std::vector<Sensor*>& sensors, std::vector<Control
         sensors.push_back(luminositySensor);
         sensors.push_back(temperatureSensor);
 
-        Control* waterControl = new Control("water",false,20,80,"manual",(int)pumpPin);
-        Control* lightControl = new Control("light",false,20,80,"manual",(int)lightPin);
-        Control* windControl = new Control("wind",false,20,80,"manual",(int)fanPin);
+        Control* waterControl = new Control("water",false,20,30,"manual",(int)pumpPin);
+        Control* lightControl = new Control("light",false,20,30,"manual",(int)lightPin);
+        Control* windControl = new Control("wind",false,20,30,"manual",(int)fanPin);
 
         controls.push_back(waterControl);
         controls.push_back(lightControl);
         controls.push_back(windControl);
 
         sendDevice(sensors,controls,true);
+        sensors.clear();
+        controls.clear();
+        loadOrCreateDeviceConfig(sensors, controls);
     }else{
         for (size_t i = 0; i < responseData["data"]["sensors"].size(); i++) {
             Sensor* newSensor = new Sensor();

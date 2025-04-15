@@ -1,5 +1,6 @@
 // app.cpp
 #include "app.h"
+#include "view/display.h"
 #include "model/sensors.h"
 #include "model/controls.h"
 #include "control/service/server_api.h"
@@ -9,13 +10,15 @@
 #include "control/manager/sensor_manager.h"
 #include "control/manager/control_manager.h"
 #include "control/manager/pref_manager.h"
-#include "view/display.h"
 std::vector<Sensor*> sensors;
 std::vector<Control*> controls;
-const int pwmPin = 21; // Nối tới Gate MOSFET
-const int channel = 0;
-const int freq = 5000;
-const int resolution = 8;
+#define LONG_PRESS_TIME 2000 // 2 giây
+unsigned long buttonPressStart = 0;
+bool buttonHeld = false;
+// const int pwmPin = 21; // Nối tới Gate MOSFET
+// const int channel = 0;
+// const int freq = 5000;
+// const int resolution = 8;
 void appSetup() {
     Serial.begin(9600);
     connectWiFi();
@@ -25,7 +28,7 @@ void appSetup() {
     initPreferences();
     initDisplay();
     pinMode(buttonPin,INPUT_PULLUP);
-    // deviceID = "10"; 
+    // deviceID = "9999"; 
     deviceID = getDeviceID();
     loadOrCreateDeviceConfig(sensors,controls);
     // ledcSetup(channel, freq, resolution);
@@ -34,12 +37,24 @@ void appSetup() {
 
 void appLoop() {
     // Serial.println(map(analogRead(rotatePin),0,4095,0,100));
-    // Serial.println(digitalRead(buttonPin));
+    int buttonState = digitalRead(buttonPin);
+
+    if (buttonState == LOW) {
+        if (!buttonHeld) {
+            buttonHeld = true;
+            buttonPressStart = millis();
+        } else if (millis() - buttonPressStart > LONG_PRESS_TIME) {
+            Serial.println("Nút được giữ lâu, reset WiFi");
+            resetWiFi();
+        }
+    } else {
+        buttonHeld = false;
+    }
     // Serial.println(analogRead(streamPin));
     // ledcWrite(channel, 128);
     updateTime();
-    updateControlsBehave(controls,sensors);
     receiveControlsData(deviceID, controls);
+    updateControlsBehave(controls,sensors);
     collectSensorsData(sensors);
     updateSensorToServer(sensors);
 }
