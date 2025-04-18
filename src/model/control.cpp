@@ -1,4 +1,4 @@
-#include "model/controls.h"
+#include "model/control.h"
 #include "control/service/server_api.h"
 #include "view/display.h"
 #include "control/manager/device_manager.h"

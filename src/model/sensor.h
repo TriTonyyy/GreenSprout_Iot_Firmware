@@ -1,5 +1,5 @@
-#ifndef SENSORS_H
-#define SENSORS_H
+#ifndef SENSOR_H
+#define SENSOR_H
 
 #include <DHT.h>
 #include <ArduinoJson.h>

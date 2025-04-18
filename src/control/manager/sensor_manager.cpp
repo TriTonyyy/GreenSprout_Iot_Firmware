@@ -1,7 +1,9 @@
 
-#include "model/sensors.h"
+#include "model/sensor.h"
 #include "sensor_manager.h"
 #include "../manager/pref_manager.h"
+
+String sub= "_rb";
 
 void collectSensorsData(std::vector<Sensor*>& sensors){
     float stream = readStream();
@@ -19,16 +21,21 @@ void collectSensorsData(std::vector<Sensor*>& sensors){
     // Store the data in Preferences if it's valid
     if (!isnan(moisture)) {
         storeData(moistureLabel, moisture);
+        storeData(moistureLabel+sub, moisture);
     }
     if (!isnan(luminosity)) {
         storeData(luminosityLabel, luminosity);
+        storeData(luminosityLabel+sub, luminosity);
     }
     if (!isnan(stream)) {
         storeData(streamLabel, stream);
+        storeData(streamLabel+sub, stream);
     }
     if (!isnan(temperature) && !isnan(humidity)) {
         storeData(temperatureLabel, temperature);
+        storeData(temperatureLabel+sub, temperature);
         storeData(humidityLabel, humidity);
+        storeData(humidityLabel+sub, humidity);
     }
 }
 void resetSensorsData(){
@@ -37,4 +44,11 @@ void resetSensorsData(){
     resetData(moistureLabel);
     resetData(luminosityLabel);
     resetData(temperatureLabel);
+}
+void resetSensorRpsData(){
+    resetData(streamLabel+sub);
+    resetData(humidityLabel+sub);
+    resetData(moistureLabel+sub);
+    resetData(luminosityLabel+sub);
+    resetData(temperatureLabel+sub);
 }

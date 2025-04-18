@@ -7,11 +7,15 @@ String serverAddress = "https://capstone-project-iot-1.onrender.com/api/";
 // String serverAddress = "http://192.168.1.224:8000/api/";
 
 String updateControlPath = "control/updateControls/"; 
+String getControlsPath = "control/detailControls/"; 
 
 String updateSensorPath = "sensor/updateSensors/"; 
 
 String getSchedulePath = "schedule/scheduleBy/"; 
 String updateSchedulePath = "schedule/updateSchedule/"; 
+
+String getReportPath = "report/detailReport/";
+String updateReportPath = "report/updateReport/";
 
 String createDevicePath = "device/createDevice"; 
 String getDevicePath = "device/detailDeviceBy/"; 
@@ -20,7 +24,27 @@ String updateDevicePath = "device/updateDevice/";
 const unsigned long measurementInterval = 20000; 
 unsigned long lastMeasurementTime = measurementInterval;
 
+void sendReport(Report* report) {
+    StaticJsonDocument<518> doc;
+    doc["water_usage"] = report->getWaterUsage();
+    JsonArray moistureArr = doc.createNestedArray("moisture_avg");
+    moistureArr.add(report->getMoistureAvg());
 
+    JsonArray luminosityArr = doc.createNestedArray("luminosity_avg");
+    luminosityArr.add(report->getLuminosityAvg());
+
+    JsonArray temperatureArr = doc.createNestedArray("tempurature_avg"); // keep the same spelling as your schema
+    temperatureArr.add(report->getTemperatureAvg());
+
+    JsonArray humidityArr = doc.createNestedArray("humidity_avg");
+    humidityArr.add(report->getHumidityAvg());
+
+    JsonArray streamArr = doc.createNestedArray("stream_avg");
+    streamArr.add(report->getStreamAvg());
+    String payload;
+    serializeJson(doc, payload);
+    sendData(payload,updateReportPath+deviceID,false);
+}
 void sendSensors(std::vector<Sensor*> sensors) {
     StaticJsonDocument<518> doc;
     for (size_t i = 0; i < sensors.size(); i++)

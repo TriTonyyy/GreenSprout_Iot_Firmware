@@ -1,12 +1,13 @@
-#include "sensors.h"
-
+#include "sensor.h"
+#include "control/manager/pref_manager.h"
 
 DHT dht(DHTPIN, DHTTYPE);
 String streamLabel = "stream";
-String humidityLabel = "humidity";
-String moistureLabel = "moisture";
-String luminosityLabel = "luminosity";
-String temperatureLabel = "temperature";
+String humidityLabel = "humid";
+String moistureLabel = "moist";
+String luminosityLabel = "lumi";
+String temperatureLabel = "temp";
+String waterUsageLabel = "water";
 volatile int pulseCount = 0;
 unsigned long lastTime = 0;
 float streamSpeed = 0.0;
@@ -38,6 +39,9 @@ float readStream() {
         // Chuyển đổi xung thành L/min
         // Dựa theo thông số có thể là: 5.5 hoặc 7.5 pulses/second = 1 L/min
         streamSpeed = pulseCount / 98.0;
+        float waterThisSecond = (streamSpeed / 60.0); // L/min → L/sec
+        float totalWaterUsage = preferences.isKey(waterUsageLabel.c_str()) ? preferences.getFloat(waterUsageLabel.c_str()):0.0; 
+        preferences.putFloat(waterUsageLabel.c_str(),totalWaterUsage + waterThisSecond);
 
         pulseCount = 0;
         lastTime = currentTime;

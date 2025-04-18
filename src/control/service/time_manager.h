@@ -7,6 +7,7 @@ void initTime();
 void updateTime();
 String getDateTime();
 String getTime();
+int getHour();
 String getDay();
 String getPrevDay();
 String convertTo24Hour(String time12);

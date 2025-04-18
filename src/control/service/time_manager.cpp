@@ -36,6 +36,10 @@ String getTime() {
     String timeStr = String(hour()) + ":" + String(minute());
     return timeStr;
 }
+int getHour(){
+    unsigned long epochTime = timeClient.getEpochTime();
+    return hour();
+}
 String convertTo24Hour(String time12) {
     int hour12 =  time12.substring(0,2).toInt();;
     int minute =  time12.substring(3,5).toInt();;

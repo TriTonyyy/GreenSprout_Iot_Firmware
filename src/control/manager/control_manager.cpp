@@ -3,10 +3,10 @@
 #include <ArduinoJson.h>
 
 void receiveControlsData(String deviceID, std::vector<Control*>& controls){
-    StaticJsonDocument<512> doc = getData(getDevicePath+deviceID)["data"];
-    for (size_t i = 0; i < doc["controls"].size(); i++)
+    StaticJsonDocument<512> doc = getData(getControlsPath+deviceID);
+    for (size_t i = 0; i < doc.size(); i++)
     {
-        controls[i]->updateFromJson(doc["controls"][i]);
+        controls[i]->updateFromJson(doc[i]);
     }
 }
 void updateControlsBehave(std::vector<Control*>& controls,std::vector<Sensor*> sensors){

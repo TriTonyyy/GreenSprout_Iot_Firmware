@@ -1,7 +1,7 @@
 #ifndef DEVICE_MANAGER_H
 #define DEVICE_MANAGER_H
-#include "model/controls.h"
-#include "model/sensors.h"
+#include "model/control.h"
+#include "model/sensor.h"
 #include <vector>
 extern String deviceID;
 String getDeviceID();

@@ -29,7 +29,7 @@ void storeData(String name, float value) {
     // Store back into Preferences
     preferences.putFloat(sumKey.c_str(), sum);
     preferences.putInt(countKey.c_str(), count);
-
+    
 }
 
 float calAvg(String name) {
