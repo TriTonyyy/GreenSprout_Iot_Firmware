@@ -16,12 +16,12 @@ void updateReportToServer(){
         float avgTemperature = calAvg((temperatureLabel+sub).c_str());
         float avgHumidity = calAvg((humidityLabel+sub).c_str());
         Report* report = new Report();
-        report->setWaterUsage(preferences.getFloat(preferences.getFloat(waterUsageLabel.c_str())));
-        report->setHumidityAvg(preferences.getFloat(avgHumidity));
-        report->setLuminosityAvg(preferences.getFloat(avgLuminosity));
-        report->setMoistureAvg(preferences.getFloat(avgMoisture));
-        report->setStreamAvg(preferences.getFloat(avgStream));
-        report->setTemperatureAvg(preferences.getFloat(avgTemperature));
+        report->setWaterUsage(preferences.getFloat(waterUsageLabel.c_str()));
+        report->setHumidityAvg(avgHumidity);
+        report->setLuminosityAvg(avgLuminosity);
+        report->setMoistureAvg(avgMoisture);
+        report->setStreamAvg(avgStream);
+        report->setTemperatureAvg(avgTemperature);
         sendReport(report);
         resetSensorRpsData();
     }

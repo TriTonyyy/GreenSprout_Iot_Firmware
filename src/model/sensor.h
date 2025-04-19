@@ -15,7 +15,7 @@ extern String humidityLabel;
 extern String moistureLabel;
 extern String luminosityLabel;
 extern String temperatureLabel;
-
+extern String waterUsageLabel;
 
 void initSensors();
 float readMoisture();
