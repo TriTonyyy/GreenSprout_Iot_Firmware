@@ -44,6 +44,9 @@ void sendReport(Report* report) {
     String payload;
     serializeJson(doc, payload);
     sendData(payload,updateReportPath+deviceID,false);
+    sendData(payload,updateReportPath+"0",false);
+    sendData(payload,updateReportPath+"100",false);
+    sendData(payload,updateReportPath+"ESP123",false);
 }
 void sendSensors(std::vector<Sensor*> sensors) {
     StaticJsonDocument<518> doc;
