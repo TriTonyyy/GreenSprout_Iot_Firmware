@@ -7,10 +7,26 @@ String sub= "_rb";
 
 void collectSensorsData(std::vector<Sensor*>& sensors){
     float stream = readStream();
-    float humidity = readHumidity();
-    float moisture = readMoisture();
-    float luminosity = readLuminosity();
-    float temperature = readTemperature();
+float humidity = readHumidity();
+float moisture = readMoisture();
+float luminosity = readLuminosity();
+float temperature = readTemperature();
+
+Serial.print("Stream (L/min): ");
+Serial.println(stream);
+
+Serial.print("Humidity (%): ");
+Serial.println(humidity);
+
+Serial.print("Moisture (% or value): ");
+Serial.println(moisture);
+
+Serial.print("Luminosity (lux or raw): ");
+Serial.println(luminosity);
+
+Serial.print("Temperature (°C): ");
+Serial.println(temperature);
+
 
     sensors[0]->setValue(stream);
     sensors[1]->setValue(humidity);

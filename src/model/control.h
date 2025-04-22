@@ -46,7 +46,7 @@ public:
   void setMode(String newMode);
   void setId(String newId);
   void setName(String newName);
-
+  void setPin(int newPin);
   // Control methods
   void toggle();
   void turn(bool isOn);

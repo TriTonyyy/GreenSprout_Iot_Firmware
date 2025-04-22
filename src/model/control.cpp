@@ -8,10 +8,6 @@ void initControls()
     pinMode(pumpPin, OUTPUT);
     pinMode(fanPin, OUTPUT);
     pinMode(lightPin, OUTPUT);
-
-    digitalWrite(pumpPin, HIGH);
-    digitalWrite(fanPin, HIGH);
-    digitalWrite(lightPin, HIGH);
 }
 Control::Control()
 {
@@ -40,7 +36,7 @@ Control::Control(String name, bool status, int threshold_min, int threshold_max,
 
     // Initialize the pin as output
     pinMode(pin, OUTPUT);
-    digitalWrite(pin, status ? LOW : HIGH); // Assuming LOW = on, HIGH = off for relay
+    digitalWrite(pin, status ? HIGH : LOW); // Assuming LOW = on, HIGH = off for relay
 }
 
 // Getters
@@ -82,7 +78,8 @@ String Control::getMode() const
 void Control::setStatus(bool newStatus)
 {
     status = newStatus;
-    digitalWrite(pin, status ? LOW : HIGH); // LOW = on, HIGH = off for relay
+    Serial.println("Status: "+String(status)+" Pin: "+String(pin));
+    digitalWrite(pin, status ? HIGH : LOW); // LOW = on, HIGH = off for relay
 }
 
 void Control::setName(String newName)
@@ -111,6 +108,9 @@ void Control::setSchedules(StaticJsonDocument<512> newSchedules)
 {
     schedules = newSchedules;
 }
+void Control::setPin(int newPin){
+    pin = newPin;
+}
 
 // Control methods
 void Control::turn(bool isOn)
@@ -118,9 +118,9 @@ void Control::turn(bool isOn)
     setStatus(isOn);
     is_running = isOn;
     if(isOn){
-        setColor(0,255,0);
+        setColor(255,255,0);
     }else{
-        setColor(255,0,0);
+        setColor(255,255,255);
         delay(1000);
         setColor(0,0,0);
     }
@@ -267,6 +267,19 @@ void Control::updateFromJson(const StaticJsonDocument<512> &doc)
         setId(doc["_id"].as<String>());
         setSchedules(doc["schedules"]);
         setName(doc["name"]);
+        if (name == "wind") {
+            setPin(fanPin);
+        }
+        else if (name == "light") {
+            setPin(lightPin);
+        }
+        else if (name == "water") {
+            setPin(pumpPin);
+        }
+        else {
+            Serial.println("Unknown device name: " + name);
+        }
+        
     }
 }
 

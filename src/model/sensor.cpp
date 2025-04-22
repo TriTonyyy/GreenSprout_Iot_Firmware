@@ -38,16 +38,17 @@ float readStream() {
 
         // Chuyển đổi xung thành L/min
         // Dựa theo thông số có thể là: 5.5 hoặc 7.5 pulses/second = 1 L/min
-        streamSpeed = pulseCount / 98.0;
+        streamSpeed = pulseCount / 98;
         float waterThisSecond = (streamSpeed / 60.0); // L/min → L/sec
         float totalWaterUsage = preferences.isKey(waterUsageLabel.c_str()) ? preferences.getFloat(waterUsageLabel.c_str()):0.0; 
         preferences.putFloat(waterUsageLabel.c_str(),totalWaterUsage + waterThisSecond);
-
+        Serial.print("Total Water Usage (L): ");
+        Serial.println(totalWaterUsage + waterThisSecond);
         pulseCount = 0;
         lastTime = currentTime;
 
         attachInterrupt(digitalPinToInterrupt(streamPin), countPulse, RISING);
-        return streamSpeed;
+        return waterThisSecond;
     }
     return 0;
 }
