@@ -27,7 +27,6 @@ void appSetup() {
     connectWiFi();
     initTime();
     initSensors();
-    initControls();
     initPreferences();
     initDisplay();
     pinMode(buttonPin,INPUT_PULLUP);
