@@ -27,18 +27,15 @@ void appSetup() {
     connectWiFi();
     initTime();
     initSensors();
+    initControls();
     initPreferences();
     initDisplay();
     pinMode(buttonPin,INPUT_PULLUP);
-    // deviceID = "9999"; 
     deviceID = getDeviceID();
     loadOrCreateDeviceConfig(sensors,controls);
-    // ledcSetup(channel, freq, resolution);
-    // ledcAttachPin(pwmPin, channel);
 }
 
 void appLoop() {
-    // Serial.println(map(analogRead(rotatePin),0,4095,0,100));
     int buttonState = digitalRead(buttonPin);
 
     if (buttonState == LOW) {
@@ -52,8 +49,6 @@ void appLoop() {
     } else {
         buttonHeld = false;
     }
-    // Serial.println(analogRead(streamPin));
-    // ledcWrite(channel, 128);
     updateTime();
     receiveControlsData(deviceID, controls);
     updateControlsBehave(controls,sensors);
