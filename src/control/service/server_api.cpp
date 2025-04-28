@@ -96,7 +96,16 @@ void sendDevice(std::vector<Sensor*> sensors, std::vector<Control*> controls, bo
     JsonArray sensorsJS = doc.createNestedArray("sensors");
     for (Sensor* sensor : sensors) {
         JsonObject sensorJs = sensorsJS.createNestedObject();
-        sensorJs["type"] = sensor->getType();
+        String type = "stream";
+        if(sensor->getType() == "humid"){
+            sensorJs["type"] = "humidity";
+        }else if(sensor->getType() == "moist"){
+            sensorJs["type"] = "moisture";
+        }else if(sensor->getType() == "lumi"){
+            sensorJs["type"] = "luminosity";
+        }else if(sensor->getType() == "temp"){
+            sensorJs["type"] = "temperature";
+        }
         sensorJs["value"] = sensor->getValue();
     }
     JsonArray controlsJS = doc.createNestedArray("controls");
@@ -119,7 +128,7 @@ void sendData(String payload, String apiPath, bool isPost) {
     HTTPClient http;
     http.begin(serverAddress + apiPath);
     http.addHeader("Content-Type", "application/json");
-
+    Serial.println("Create device: "+payload);
     Serial.println("Sending request to: " + serverAddress + apiPath);
     
     // Send HTTP request (POST or PUT)

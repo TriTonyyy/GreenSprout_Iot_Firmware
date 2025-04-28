@@ -4,9 +4,9 @@
 #include <vector>
 #include <ArduinoJson.h>
 
-#define pumpPin 16
-#define fanPin 19
-#define lightPin 21
+#define pumpPin 19
+#define fanPin 21
+#define lightPin 16
 
 
 void initControls();

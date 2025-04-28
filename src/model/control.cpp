@@ -8,6 +8,9 @@ void initControls()
     pinMode(pumpPin, OUTPUT);
     pinMode(fanPin, OUTPUT);
     pinMode(lightPin, OUTPUT);
+    digitalWrite(pumpPin,LOW);
+    digitalWrite(fanPin,LOW);
+    digitalWrite(lightPin,LOW);
 }
 Control::Control()
 {
@@ -33,7 +36,7 @@ Control::Control(String name, bool status, int threshold_min, int threshold_max,
     this->mode = mode;
     this->is_running = false;
     this->schedules;
-    digitalWrite(pin, status ? LOW : HIGH); // Assuming LOW = on, HIGH = off for relay
+    digitalWrite(pin, status ? HIGH : LOW); // Assuming LOW = on, HIGH = off for relay
 }
 
 // Getters
@@ -76,7 +79,7 @@ void Control::setStatus(bool newStatus)
 {
     status = newStatus;
     Serial.println("Status: "+String(status)+" Pin: "+String(pin));
-    digitalWrite(pin, status ? LOW: HIGH); // LOW = on, HIGH = off for relay
+    digitalWrite(pin, status ? HIGH: LOW); // LOW = on, HIGH = off for relay
 }
 
 void Control::setName(String newName)
