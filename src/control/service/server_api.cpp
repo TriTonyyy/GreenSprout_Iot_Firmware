@@ -44,9 +44,6 @@ void sendReport(Report* report) {
     String payload;
     serializeJson(doc, payload);
     sendData(payload,updateReportPath+deviceID,false);
-    sendData(payload,updateReportPath+"0",false);
-    sendData(payload,updateReportPath+"100",false);
-    sendData(payload,updateReportPath+"ESP123",false);
 }
 void sendSensors(std::vector<Sensor*> sensors) {
     StaticJsonDocument<518> doc;
@@ -98,14 +95,15 @@ void sendDevice(std::vector<Sensor*> sensors, std::vector<Control*> controls, bo
         JsonObject sensorJs = sensorsJS.createNestedObject();
         String type = "stream";
         if(sensor->getType() == "humid"){
-            sensorJs["type"] = "humidity";
+            type = "humidity";
         }else if(sensor->getType() == "moist"){
-            sensorJs["type"] = "moisture";
+            type = "moisture";
         }else if(sensor->getType() == "lumi"){
-            sensorJs["type"] = "luminosity";
+            type = "luminosity";
         }else if(sensor->getType() == "temp"){
-            sensorJs["type"] = "temperature";
+            type = "temperature";
         }
+        sensorJs["type"] = type;
         sensorJs["value"] = sensor->getValue();
     }
     JsonArray controlsJS = doc.createNestedArray("controls");
