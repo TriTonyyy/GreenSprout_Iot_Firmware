@@ -15,13 +15,9 @@
 
 std::vector<Sensor*> sensors;
 std::vector<Control*> controls;
-#define LONG_PRESS_TIME 2000 // 2 giây
+#define LONG_PRESS_TIME 2000
 unsigned long buttonPressStart = 0;
 bool buttonHeld = false;
-// const int pwmPin = 21; // Nối tới Gate MOSFET
-// const int channel = 0;
-// const int freq = 5000;
-// const int resolution = 8;
 void appSetup() {
     Serial.begin(9600);
     connectWiFi();
@@ -30,15 +26,24 @@ void appSetup() {
     initControls();
     initPreferences();
     initDisplay();
-    pinMode(buttonPin,INPUT_PULLUP);
+    pinMode(wifiPin,INPUT_PULLUP);
     deviceID = getDeviceID();
     loadOrCreateDeviceConfig(sensors,controls);
 }
 
 void appLoop() {
-    int buttonState = digitalRead(buttonPin);
+    clearWifi();
+    updateTime();
+    receiveControlsData(deviceID, controls);
+    updateControlsBehave(controls,sensors);
+    collectSensorsData(sensors);
+    updateSensorToServer(sensors);
+    updateReportToServer();
+}
+void clearWifi(){
+    int wifiState = digitalRead(wifiPin);
 
-    if (buttonState == LOW) {
+    if (wifiState == LOW) {
         if (!buttonHeld) {
             buttonHeld = true;
             buttonPressStart = millis();
@@ -49,10 +54,4 @@ void appLoop() {
     } else {
         buttonHeld = false;
     }
-    updateTime();
-    receiveControlsData(deviceID, controls);
-    updateControlsBehave(controls,sensors);
-    collectSensorsData(sensors);
-    updateSensorToServer(sensors);
-    updateReportToServer();
 }
