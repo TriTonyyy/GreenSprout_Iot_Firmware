@@ -78,8 +78,15 @@ String Control::getMode() const
 void Control::setStatus(bool newStatus)
 {
     status = newStatus;
-    Serial.println("Status: "+String(status)+" Pin: "+String(pin));
-    digitalWrite(pin, status ? HIGH: LOW); // LOW = on, HIGH = off for relay
+    digitalWrite(pin, status ? HIGH: LOW); 
+    if(name != "light"){
+        return;
+    }
+    if(status){
+        setColor(255,50,0);
+    }else{       
+        setColor(0,0,0);
+    }
 }
 
 void Control::setName(String newName)
@@ -117,13 +124,6 @@ void Control::turn(bool isOn)
 {
     setStatus(isOn);
     is_running = isOn;
-    if(isOn){
-        setColor(255,255,0);
-    }else{
-        setColor(255,255,255);
-        delay(1000);
-        setColor(0,0,0);
-    }
     std::vector<Control*> controls;
     controls.push_back(this);
     sendControls(controls);

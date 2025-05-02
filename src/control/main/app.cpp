@@ -31,15 +31,6 @@ void appSetup() {
     loadOrCreateDeviceConfig(sensors,controls);
 }
 
-void appLoop() {
-    clearWifi();
-    updateTime();
-    receiveControlsData(deviceID, controls);
-    updateControlsBehave(controls,sensors);
-    collectSensorsData(sensors);
-    updateSensorToServer(sensors);
-    updateReportToServer();
-}
 void clearWifi(){
     int wifiState = digitalRead(wifiPin);
 
@@ -54,4 +45,13 @@ void clearWifi(){
     } else {
         buttonHeld = false;
     }
+}
+void appLoop() {
+    clearWifi();
+    updateTime();
+    receiveControlsData(deviceID, controls);
+    updateControlsBehave(controls,sensors);
+    collectSensorsData(sensors);
+    updateSensorToServer(sensors);
+    updateReportToServer();
 }
