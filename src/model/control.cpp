@@ -152,21 +152,22 @@ void Control::update(float value)
     else if (mode == "schedule")
     {
         String currentDay = getDay();
-        String currentTime = getTime();  // "HH:MM:SS"
-        
-        int curH, curM, curS;
-        sscanf(currentTime.c_str(), "%d:%d:%d", &curH, &curM, &curS);
-        int currentSeconds = curH * 3600 + curM * 60 + curS;
+        String currentTime = getTime();
+        int curH, curM;
+        sscanf(currentTime.c_str(), "%d:%d", &curH, &curM);
+        int currentSeconds = curH * 3600 + curM * 60;
         for (size_t i = 0; i < schedules.size(); i++)
         {
             if (schedules[i]["status"])
             {
                 String startTime = convertTo24Hour(schedules[i]["startTime"]);
                 int duration = schedules[i]["duration"].as<int>();
+                Serial.println("Start time: "+startTime);
+                Serial.println("Duration: "+String(duration));
 
                 int startH, startM, startS;
-                sscanf(startTime.c_str(), "%d:%d:%d", &startH, &startM, &startS);
-                int startSeconds = startH * 3600 + startM * 60 + startS;
+                sscanf(startTime.c_str(), "%d:%d", &startH, &startM);
+                int startSeconds = startH * 3600 + startM * 60;
                 int endSeconds = startSeconds + duration;
                 
                 bool isPassDay = false;
@@ -183,7 +184,6 @@ void Control::update(float value)
                         String day = repeatDays[j];
                         bool matchToday = (!isPassDay && day == currentDay);
                         bool matchPrevDay = (isPassDay && day == getPrevDay());
-    
                         if (matchToday || matchPrevDay)
                         {
                             bool inTimeRange = false;
@@ -200,8 +200,10 @@ void Control::update(float value)
     
                             if (inTimeRange)
                             {
-                                if (!is_running)
+                                if (!is_running){
                                     turn(true);
+                                    break;
+                                }
                             }
                             else
                             {
@@ -224,8 +226,11 @@ void Control::update(float value)
 
                         if (inTimeRange)
                         {
-                            if (!is_running)
+                            if (!is_running){
                                 turn(true);
+                                break;
+                            }
+                                
                         }
                         else
                         {

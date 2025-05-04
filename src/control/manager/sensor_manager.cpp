@@ -67,4 +67,5 @@ void resetSensorRpsData(){
     resetData(moistureLabel+sub);
     resetData(luminosityLabel+sub);
     resetData(temperatureLabel+sub);
+    preferences.putFloat(waterUsageLabel.c_str(),0.0);
 }

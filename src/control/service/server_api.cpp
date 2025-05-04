@@ -126,14 +126,13 @@ void sendData(String payload, String apiPath, bool isPost) {
     HTTPClient http;
     http.begin(serverAddress + apiPath);
     http.addHeader("Content-Type", "application/json");
-    Serial.println("Create device: "+payload);
-    Serial.println("Sending request to: " + serverAddress + apiPath);
+    // Serial.println("Sending request to: " + serverAddress + apiPath);
     
     // Send HTTP request (POST or PUT)
     int httpResponseCode = isPost ? http.POST(payload) : http.PUT(payload);
     
     if (httpResponseCode > 0) {
-        Serial.printf("HTTP Response Code: %d\n", httpResponseCode);
+        // Serial.printf("HTTP Response Code: %d\n", httpResponseCode);
         String response = http.getString();
 
         // Parse JSON response
@@ -157,15 +156,15 @@ StaticJsonDocument<512> getData(String apiPath) {
     http.begin(serverAddress + apiPath);
     http.addHeader("Content-Type", "application/json");
     
-    Serial.println("Requesting data from: " + serverAddress + apiPath);
+    // Serial.println("Requesting data from: " + serverAddress + apiPath);
     
     int httpResponseCode = http.GET();  // Send GET request
     StaticJsonDocument<512> doc;
     
     if (httpResponseCode == 200 || httpResponseCode == 404) {
-        Serial.printf("HTTP Response Code: %d\n", httpResponseCode);
+        // Serial.printf("HTTP Response Code: %d\n", httpResponseCode);
         String responseData = http.getString();
-        Serial.println("Response: " + responseData);
+        // Serial.println("Response: " + responseData);
         DeserializationError error = deserializeJson(doc, responseData);
 
         if (error) {    

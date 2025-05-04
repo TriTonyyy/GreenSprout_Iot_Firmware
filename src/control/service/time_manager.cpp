@@ -7,6 +7,9 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600, 60000);
 // Initialize NTP time client
 void initTime() {
     timeClient.begin();  // Start the NTP client
+    while (!timeClient.update()) {
+        delay(100); // chờ đến khi lấy được thời gian
+    }
 }
 void updateTime(){
     timeClient.update();
@@ -33,6 +36,7 @@ String getDateTime() {
 String getTime() {
     // Get epoch time from the timeClient
     unsigned long epochTime = timeClient.getEpochTime();
+    setTime(epochTime);  // This sets the time using epoch time, so you can use day(), month(), year(), etc.
     String timeStr = String(hour()) + ":" + String(minute());
     return timeStr;
 }
