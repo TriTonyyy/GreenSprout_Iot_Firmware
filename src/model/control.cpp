@@ -142,6 +142,7 @@ void Control::toggle()
 void Control::update(float value)
 {
     Serial.println("Mode: "+mode+" Status:"+status+" IsRunning: "+is_running);
+    Serial.println("Control: "+name+" Min:"+threshold_min+" Max: "+threshold_max+" Value: "+value);
     if (mode == "manual")
     {
         if (status && !is_running)
@@ -247,14 +248,26 @@ void Control::update(float value)
     }
     else if (mode == "threshold")
     {
-        if (value < threshold_min && !is_running)
-        {
-            turn(true);
+        if(name == "wind"){
+            if (value >= threshold_max && !is_running)
+            {
+                turn(true);
+            }
+            else if (value < threshold_min && is_running)
+            {
+                turn(false);
+            }
+        }else{
+            if (value < threshold_min && !is_running)
+            {
+                turn(true);
+            }
+            else if (value >= threshold_max && is_running)
+            {
+                turn(false);
+            }
         }
-        else if (value >= threshold_max && is_running)
-        {
-            turn(false);
-        }
+
     }
 }
 

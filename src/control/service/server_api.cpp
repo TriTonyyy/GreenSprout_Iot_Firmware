@@ -21,7 +21,7 @@ String createDevicePath = "device/createDevice";
 String getDevicePath = "device/detailDeviceBy/"; 
 String updateDevicePath = "device/updateDevice/"; 
 
-const unsigned long measurementInterval = 20000; 
+const unsigned long measurementInterval = 10000; 
 unsigned long lastMeasurementTime = measurementInterval;
 
 void sendReport(Report* report) {

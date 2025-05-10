@@ -11,7 +11,6 @@ float humidity = readHumidity();
 float moisture = readMoisture();
 float luminosity = readLuminosity();
 float temperature = readTemperature();
-
 Serial.print("Stream (L/min): ");
 Serial.println(stream);
 
@@ -27,27 +26,27 @@ Serial.println(luminosity);
 Serial.print("Temperature (°C): ");
 Serial.println(temperature);
 
-
-    sensors[0]->setValue(stream);
-    sensors[1]->setValue(humidity);
-    sensors[2]->setValue(moisture);
-    sensors[3]->setValue(luminosity);
-    sensors[4]->setValue(temperature);
+   
 
     // Store the data in Preferences if it's valid
-    if (!isnan(moisture)) {
+    if (!isnan(moisture) && moisture != 2147483648.00) {
+        sensors[2]->setValue(moisture);
         storeData(moistureLabel, moisture);
         storeData(moistureLabel+sub, moisture);
     }
-    if (!isnan(luminosity)) {
+    if (!isnan(luminosity)  && luminosity != 2147483648.00) {
         storeData(luminosityLabel, luminosity);
         storeData(luminosityLabel+sub, luminosity);
+        sensors[3]->setValue(luminosity);
     }
-    if (!isnan(stream)) {
+    if (!isnan(stream) && stream != 2147483648.00) {
+        sensors[0]->setValue(stream);
         storeData(streamLabel, stream);
         storeData(streamLabel+sub, stream);
     }
-    if (!isnan(temperature) && !isnan(humidity)) {
+    if (!isnan(temperature) && temperature != 2147483648.00 && !isnan(humidity) && humidity != 2147483648.00) {
+        sensors[1]->setValue(humidity);
+        sensors[4]->setValue(temperature);
         storeData(temperatureLabel, temperature);
         storeData(temperatureLabel+sub, temperature);
         storeData(humidityLabel, humidity);
