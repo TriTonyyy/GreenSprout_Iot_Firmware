@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <HTTPClient.h>
-#include <AsyncTCP.h>
 #include "model/sensor.h"
 #include "model/control.h"
 #include "model/report.h"

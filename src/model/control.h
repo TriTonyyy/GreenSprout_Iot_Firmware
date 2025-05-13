@@ -11,7 +11,6 @@
 
 void initControls();
 
-
 class Control {
 private:
   String id;

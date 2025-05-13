@@ -1,6 +1,5 @@
 // app.cpp
 #include "app.h"
-#include "view/display.h"
 #include "model/sensor.h"
 #include "model/control.h"
 #include "control/service/server_api.h"
@@ -15,19 +14,19 @@
 
 std::vector<Sensor*> sensors;
 std::vector<Control*> controls;
-#define LONG_PRESS_TIME 2000
+#define LONG_PRESS_TIME 100
 unsigned long buttonPressStart = 0;
 bool buttonHeld = false;
 void appSetup() {
     Serial.begin(9600);
+    deviceID = getDeviceID();
+    initDisplay();
     connectWiFi();
     initTime();
     initSensors();
     initControls();
     initPreferences();
-    initDisplay();
     pinMode(wifiPin,INPUT_PULLUP);
-    deviceID = getDeviceID();
     loadOrCreateDeviceConfig(sensors,controls);
 }
 

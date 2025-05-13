@@ -1,6 +1,5 @@
 #include "model/control.h"
 #include "control/service/server_api.h"
-#include "view/display.h"
 #include "control/manager/device_manager.h"
 #include "control/service/time_manager.h"
 void initControls()
@@ -79,14 +78,6 @@ void Control::setStatus(bool newStatus)
 {
     status = newStatus;
     digitalWrite(pin, status ? HIGH: LOW); 
-    if(name != "light"){
-        return;
-    }
-    if(status){
-        setColor(255,50,0);
-    }else{       
-        setColor(0,0,0);
-    }
 }
 
 void Control::setName(String newName)
