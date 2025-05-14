@@ -45,21 +45,25 @@ int getHour(){
     return hour();
 }
 String convertTo24Hour(String time12) {
-    int hour12 =  time12.substring(0,2).toInt();;
-    int minute =  time12.substring(3,5).toInt();;
-    String ampm =  time12.substring(7,9);
+    String ampm = time12.substring(time12.length() - 2); // Extract AM/PM
+    String time = time12.substring(0, time12.length() - 3);
+    int hour =  0;
+    int minute =  0;
+    sscanf(time.c_str(), "%d:%d", &hour, &minute);
+    Serial.println(time);
+    Serial.println(ampm);
     // Convert to uppercase just in case
     ampm.toUpperCase();
   
     // Adjust hour based on AM/PM
-    if (ampm == "AM" && hour12 == 12) {
-      hour12 = 0;  // Midnight case
-    } else if (ampm == "PM" && hour12 != 12) {
-      hour12 += 12;
+    if (ampm == "AM" && hour == 12) {
+      hour = 0;  // Midnight case
+    } else if (ampm == "PM" && hour != 12) {
+      hour += 12;
     }
   
     char buffer[9]; // HH:MM:SS format
-    sprintf(buffer, "%02d:%02d:00", hour12, minute);
+    sprintf(buffer, "%02d:%02d", hour, minute);
   
     return String(buffer);
   }

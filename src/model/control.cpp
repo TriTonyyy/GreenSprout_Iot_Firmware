@@ -156,9 +156,9 @@ void Control::update(float value)
                 int duration = schedules[i]["duration"].as<int>();
                 Serial.println("Start time: "+startTime);
                 Serial.println("Duration: "+String(duration));
-
                 int startH, startM, startS;
                 sscanf(startTime.c_str(), "%d:%d", &startH, &startM);
+
                 int startSeconds = startH * 3600 + startM * 60;
                 int endSeconds = startSeconds + duration;
                 
@@ -205,7 +205,10 @@ void Control::update(float value)
                         }
                     }
                 }else{
+                    Serial.println("No repeat");
                     bool inTimeRange = false;
+                    Serial.println(isPassDay);
+
                     if (!isPassDay)
                         {
                             inTimeRange = (currentSeconds >= startSeconds && currentSeconds < endSeconds);
@@ -215,9 +218,14 @@ void Control::update(float value)
                             // Split over midnight: (e.g., 23:50 to 00:10)
                             inTimeRange = (currentSeconds >= startSeconds || currentSeconds < endSeconds);
                         }
+                        Serial.println(currentSeconds);
+                        Serial.println(startSeconds);
+                        Serial.println(endSeconds);
 
                         if (inTimeRange)
                         {
+                            Serial.println(is_running);
+
                             if (!is_running){
                                 turn(true);
                                 break;
@@ -227,9 +235,9 @@ void Control::update(float value)
                         else
                         {
                             if (is_running){
-                                turn(false);
                                 schedules[i]["status"] = false;
-                                updateSchedule(schedules[i]);
+                                turn(false);
+                                // updateSchedule(schedules[i]);
                             }
                                 
                         }

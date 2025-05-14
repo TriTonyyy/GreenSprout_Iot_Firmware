@@ -80,6 +80,7 @@ void sendControls(std::vector<Control*> controls) {
 void updateSchedule(StaticJsonDocument<512> schedule) {
     String payload;
     serializeJson(schedule, payload);
+    Serial.println(payload);
     sendData(payload,updateSchedulePath+deviceID+"/"+schedule["_id"].as<String>(),true);
 }
 void sendDevice(std::vector<Sensor*> sensors, std::vector<Control*> controls, bool isPost) {
