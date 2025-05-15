@@ -50,9 +50,6 @@ String convertTo24Hour(String time12) {
     int hour =  0;
     int minute =  0;
     sscanf(time.c_str(), "%d:%d", &hour, &minute);
-    Serial.println(time);
-    Serial.println(ampm);
-    // Convert to uppercase just in case
     ampm.toUpperCase();
   
     // Adjust hour based on AM/PM

@@ -81,7 +81,7 @@ void updateSchedule(StaticJsonDocument<512> schedule) {
     String payload;
     serializeJson(schedule, payload);
     Serial.println(payload);
-    sendData(payload,updateSchedulePath+deviceID+"/"+schedule["_id"].as<String>(),true);
+    sendData(payload,updateSchedulePath+deviceID+"/"+schedule["_id"].as<String>(),false);
 }
 void sendDevice(std::vector<Sensor*> sensors, std::vector<Control*> controls, bool isPost) {
     StaticJsonDocument<256> doc;

@@ -1,7 +1,6 @@
 // app.cpp
 #include "app.h"
 #include "model/sensor.h"
-#include "model/control.h"
 #include "control/service/server_api.h"
 #include "control/service/wifi_manager.h"
 #include "control/service/time_manager.h"
@@ -11,9 +10,8 @@
 #include "control/manager/pref_manager.h"
 #include "control/manager/report_manager.h"
 
-
-std::vector<Sensor*> sensors;
 std::vector<Control*> controls;
+std::vector<Sensor*> sensors;
 #define LONG_PRESS_TIME 100
 unsigned long buttonPressStart = 0;
 bool buttonHeld = false;
@@ -38,7 +36,6 @@ void clearWifi(){
             buttonHeld = true;
             buttonPressStart = millis();
         } else if (millis() - buttonPressStart > LONG_PRESS_TIME) {
-            Serial.println("Nút được giữ lâu, reset WiFi");
             resetWiFi();
         }
     } else {

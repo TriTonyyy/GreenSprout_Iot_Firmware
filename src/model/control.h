@@ -27,21 +27,21 @@ public:
   // Constructor
   Control();
 
-  Control(String name, bool status, int threshold_min, int threshold_max, String mode, int pin);
+  Control(String name, bool status, float threshold_min, float threshold_max, String mode, int pin);
   // Getters
   String getName() const;
   String getId() const;
   StaticJsonDocument<512> getSchedules() const;
   bool getStatus() const;
-  int getThresholdMin() const;
-  int getThresholdMax() const;
+  float getThresholdMin() const;
+  float getThresholdMax() const;
   String getMode() const;
 
   // Setters
   void setSchedules(StaticJsonDocument<512> schedules);
   void setStatus(bool newStatus);
-  void setThresholdMin(int min);
-  void setThresholdMax(int max);
+  void setThresholdMin(float min);
+  void setThresholdMax(float max);
   void setMode(String newMode);
   void setId(String newId);
   void setName(String newName);

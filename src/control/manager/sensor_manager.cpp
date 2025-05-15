@@ -25,32 +25,50 @@ Serial.println(luminosity);
 
 Serial.print("Temperature (°C): ");
 Serial.println(temperature);
-
    
 
     // Store the data in Preferences if it's valid
-    if (!isnan(moisture) && moisture != 2147483648.00) {
+    if (!isnan(moisture)) {
         sensors[2]->setValue(moisture);
         storeData(moistureLabel, moisture);
         storeData(moistureLabel+sub, moisture);
+    }else{
+        sensors[2]->setValue(0);
+        storeData(moistureLabel, 0);
+        storeData(moistureLabel+sub, 0);
     }
-    if (!isnan(luminosity)  && luminosity != 2147483648.00) {
+    if (!isnan(luminosity)) {
         storeData(luminosityLabel, luminosity);
         storeData(luminosityLabel+sub, luminosity);
         sensors[3]->setValue(luminosity);
+    }else{
+        sensors[3]->setValue(0);
+        storeData(luminosityLabel, 0);
+        storeData(luminosityLabel+sub, 0);
     }
-    if (!isnan(stream) && stream != 2147483648.00) {
+    if (!isnan(stream)) {
         sensors[0]->setValue(stream);
         storeData(streamLabel, stream);
         storeData(streamLabel+sub, stream);
+    }else{
+        sensors[0]->setValue(0);
+        storeData(streamLabel, 0);
+        storeData(streamLabel+sub, 0);
     }
-    if (!isnan(temperature) && temperature != 2147483648.00 && !isnan(humidity) && humidity != 2147483648.00) {
+    if (!isnan(temperature) && !isnan(humidity)) {
         sensors[1]->setValue(humidity);
         sensors[4]->setValue(temperature);
         storeData(temperatureLabel, temperature);
         storeData(temperatureLabel+sub, temperature);
         storeData(humidityLabel, humidity);
         storeData(humidityLabel+sub, humidity);
+    }else{
+        sensors[1]->setValue(0);
+        sensors[4]->setValue(0);
+        storeData(temperatureLabel, 0);
+        storeData(temperatureLabel+sub, 0);
+        storeData(humidityLabel, 0);
+        storeData(humidityLabel+sub, 0);
     }
 }
 void resetSensorsData(){

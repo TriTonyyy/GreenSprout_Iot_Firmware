@@ -17,14 +17,14 @@ Control::Control()
     this->name = "";
     this->pin = 0;
     this->status = false;
-    this->threshold_min = 0;
-    this->threshold_max = 100;
+    this->threshold_min = 20.00;
+    this->threshold_max = 30.00;
     this->mode = "manual";
     this->is_running = false;
     this->schedules;
 }
 
-Control::Control(String name, bool status, int threshold_min, int threshold_max, String mode, int pin)
+Control::Control(String name, bool status, float threshold_min, float threshold_max, String mode, int pin)
 {
     this->id = "";
     this->name = name;
@@ -58,12 +58,12 @@ bool Control::getStatus() const
     return status;
 }
 
-int Control::getThresholdMin() const
+float Control::getThresholdMin() const
 {
     return threshold_min;
 }
 
-int Control::getThresholdMax() const
+float Control::getThresholdMax() const
 {
     return threshold_max;
 }
@@ -77,6 +77,7 @@ String Control::getMode() const
 void Control::setStatus(bool newStatus)
 {
     status = newStatus;
+    is_running = newStatus;
     digitalWrite(pin, status ? HIGH: LOW); 
 }
 
@@ -84,12 +85,12 @@ void Control::setName(String newName)
 {
     name = newName;
 }
-void Control::setThresholdMin(int min)
+void Control::setThresholdMin(float min)
 {
     threshold_min = min;
 }
 
-void Control::setThresholdMax(int max)
+void Control::setThresholdMax(float max)
 {
     threshold_max = max;
 }
@@ -114,7 +115,6 @@ void Control::setPin(int newPin){
 void Control::turn(bool isOn)
 {
     setStatus(isOn);
-    is_running = isOn;
     std::vector<Control*> controls;
     controls.push_back(this);
     sendControls(controls);
@@ -125,15 +125,12 @@ void Control::toggle()
 {
     setStatus(!status);
     is_running = status;
-    Serial.println(status ? "Turning "+name+" on..." : "Turning "+name+" off...");
 }
 
 
 // Update method for threshold-based control
 void Control::update(float value)
 {
-    Serial.println("Mode: "+mode+" Status:"+status+" IsRunning: "+is_running);
-    Serial.println("Control: "+name+" Min:"+threshold_min+" Max: "+threshold_max+" Value: "+value);
     if (mode == "manual")
     {
         if (status && !is_running)
@@ -154,8 +151,6 @@ void Control::update(float value)
             {
                 String startTime = convertTo24Hour(schedules[i]["startTime"]);
                 int duration = schedules[i]["duration"].as<int>();
-                Serial.println("Start time: "+startTime);
-                Serial.println("Duration: "+String(duration));
                 int startH, startM, startS;
                 sscanf(startTime.c_str(), "%d:%d", &startH, &startM);
 
@@ -205,9 +200,7 @@ void Control::update(float value)
                         }
                     }
                 }else{
-                    Serial.println("No repeat");
                     bool inTimeRange = false;
-                    Serial.println(isPassDay);
 
                     if (!isPassDay)
                         {
@@ -218,14 +211,8 @@ void Control::update(float value)
                             // Split over midnight: (e.g., 23:50 to 00:10)
                             inTimeRange = (currentSeconds >= startSeconds || currentSeconds < endSeconds);
                         }
-                        Serial.println(currentSeconds);
-                        Serial.println(startSeconds);
-                        Serial.println(endSeconds);
-
                         if (inTimeRange)
                         {
-                            Serial.println(is_running);
-
                             if (!is_running){
                                 turn(true);
                                 break;
@@ -237,7 +224,7 @@ void Control::update(float value)
                             if (is_running){
                                 schedules[i]["status"] = false;
                                 turn(false);
-                                // updateSchedule(schedules[i]);
+                                updateSchedule(schedules[i]);
                             }
                                 
                         }
@@ -252,12 +239,12 @@ void Control::update(float value)
             {
                 turn(true);
             }
-            else if (value < threshold_min && is_running)
+            else if (value <= threshold_min && is_running)
             {
                 turn(false);
             }
         }else{
-            if (value < threshold_min && !is_running)
+            if (value <= threshold_min && !is_running)
             {
                 turn(true);
             }
@@ -278,8 +265,8 @@ void Control::updateFromJson(const StaticJsonDocument<512> &doc)
         doc.containsKey("mode") && doc.containsKey("_id") && doc.containsKey("schedules"))
     {
         setStatus(doc["status"].as<bool>());
-        setThresholdMin(doc["threshold_min"].as<int>());
-        setThresholdMax(doc["threshold_max"].as<int>());
+        setThresholdMin(doc["threshold_min"].as<float>());
+        setThresholdMax(doc["threshold_max"].as<float>());
         setMode(doc["mode"].as<String>());
         setId(doc["_id"].as<String>());
         setSchedules(doc["schedules"]);
