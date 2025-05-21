@@ -1,5 +1,9 @@
 **Capstone IoT Firmware**
 
+# Related Repositoty
+- GreenSprout_IoT_Web: https://github.com/TriTonyyy/GreenSprout_IoT_Web
+- GreenSprout_IoT_Mobile(Android): https://github.com/TriTonyyy/GreenSprout_IoT_Mobile
+
 📌 **Overview**
 
   This repository houses the firmware developed for our Capstone IoT project.   
